@@ -7,21 +7,21 @@ def createBD():
 
 
 def readBD():
-    with open('tasks.json') as f:
-        data = json.load(f)
-        print(data)
-        return data
 
-
-def updateDB_new(task_title, task_description):
     try:
         with open('tasks.json', "r") as f:
             data = json.load(f)
     except:
         data = {}
-    
+    finally:
+        f.close()
+    return data
+
+
+def updateDB_new(task_title, task_description):
+
+    data = readBD()
     data[task_title] = task_description
-    f.close()
 
     with open('tasks.json', 'w') as f:
         json.dump(data, f, indent="")
@@ -33,8 +33,16 @@ def updateDB_current():
 
 
 def deleteDB_task(task_id):
-    file = open('tasks.json', 'w')
-    data = json.load(file)
-    data.pop(task_id)
-    json.dump(data, file)
-    file.close()
+    data = readBD()
+    del data[task_id]
+
+    with open('tasks.json', 'w') as f:
+        json.dump(data, f, indent="")
+    f.close()
+
+def readDB_task(task_id):
+    data = readBD()
+    try:
+        return data[task_id]
+    except:
+        print("There is no such task id.")

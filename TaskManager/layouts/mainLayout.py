@@ -9,7 +9,7 @@ class MainLayout:
         self.frame_tasks = Frame()
 
         self.frame = LabelFrame(root, text='Add new task')
-        self.taskCreator = UiTaskCreator(self.frame)
+        self.taskCreator = UiTaskCreator(self.frame, self)
         self.tasks = []
 
     def render(self):
@@ -26,3 +26,8 @@ class MainLayout:
                 task = UiTask(self.frame_tasks, d)
                 self.tasks.append(task)
                 task.render()
+    
+    def render_task(self, data):
+        task = UiTask(self.frame_tasks, data['title'])
+        self.tasks.append(task)
+        task.render()

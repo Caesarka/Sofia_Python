@@ -10,9 +10,10 @@ from components.ui.uiModalAddTask import ModalWindow
 
 class UiTaskCreator:
 
-    def __init__(self, root):
-        self.title_var = tkinter.StringVar(root, value="Add a task")
-        self.frame = tkinter.Frame(root, background='white', padx=5, pady=5)
+    def __init__(self, frame, main_root):
+        self.root = main_root
+        self.title_var = tkinter.StringVar(frame, value="Add a task")
+        self.frame = tkinter.Frame(frame, background='white', padx=5, pady=5)
         self.btn_add = tkinter.Button(self.frame, text='Add', command=self.add)
 
     def render(self):
@@ -22,4 +23,4 @@ class UiTaskCreator:
     def add(self):
         # ui_task = UiTask(self.frame, 'new_task')
         # ui_task.render()
-        ui_new_task = ModalWindow()
+        ui_new_task = ModalWindow(self.root)

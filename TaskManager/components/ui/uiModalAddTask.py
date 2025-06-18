@@ -3,7 +3,8 @@ from models.crud import updateDB_new
 
 
 class ModalWindow(Tk):
-    def __init__(self):
+    def __init__(self, root):
+        self.main_root = root
         super().__init__()
         self.title("Add task")
 
@@ -29,4 +30,5 @@ class ModalWindow(Tk):
 #          "description" : task_description
             task_title, task_description
         )
+        self.main_root.render_task({"title": task_title, "description": task_description})
         self.destroy()
