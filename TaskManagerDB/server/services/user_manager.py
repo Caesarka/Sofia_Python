@@ -1,7 +1,6 @@
 from sqlalchemy import create_engine, select
 from sqlalchemy.orm import Session
-from model.user.user_models import User
-
+from model.user import User
 
 class UserManager:
     def __init__(self, engine):
@@ -38,7 +37,7 @@ class UserManager:
             print(f"User {User.user_name} was added")
             return new_user
 
-    def get_user_by_name(self, user_name: str) -> User | None:
+    def get_user_by_name(self, session: Session, user_name: str) -> User | None:
         """
         Description
 
@@ -47,16 +46,15 @@ class UserManager:
         Returns:
             The method returns User or None if there is not such user_name
         """
-        with Session(self.engine) as session:
-            user = session.scalars(select(User).where(
-                User.user_name == user_name)).first()
-            if user:
-                print(f"User {User.user_name} exists")
-                return user
-            else:
-                raise Exception(f"There is no user {user_name}")
+        user = session.scalars(select(User).where(
+            User.user_name == user_name)).first()
+        if user:
+            print(f"User {User.user_name} exists")
+            return user
+        else:
+            raise Exception(f"There is no user {user_name}")
 
-    def get_all_users(self):
+    def get_all_users(self, session: Session):
         """
         Description
 
@@ -65,14 +63,13 @@ class UserManager:
         Returns:
             all Users
         """
-        with Session(self.engine) as session:
-            data = select(User)
-            users = session.scalars(data).all()
-            for user in users:
-                print(user.user_name)
-            return list(users)
+        data = select(User)
+        users = session.scalars(data).all()
+        for user in users:
+            print(user.user_name)
+        return list(users)
 
-    def delete_user(self, user_name: str):
+    def delete_user(self, session: Session, user_name: str):
         """
         Description
 
@@ -82,21 +79,20 @@ class UserManager:
         Returns:
             The method removes User object or returns None if data isn't correct
         """
-        with Session(self.engine) as session:
-            # Сделать проверку на то, что пользователь существует
+        # Сделать проверку на то, что пользователь существует
 
-            existing_user = select(User).where(User.user_name == user_name)
-            user_to_delete = session.scalars(existing_user).first()
-            if user_to_delete:
-                session.delete(user_to_delete)
-                session.commit()
-                print(f"User {user_name} was removed")
-                return True
-            else:
-                # Если не существует, добавить пользователя
-                raise Exception(f"There is no such user")
+        existing_user = select(User).where(User.user_name == user_name)
+        user_to_delete = session.scalars(existing_user).first()
+        if user_to_delete:
+            session.delete(user_to_delete)
+            session.commit()
+            print(f"User {user_name} was removed")
+            return True
+        else:
+            # Если не существует, добавить пользователя
+            raise Exception(f"There is no such user")
 
-    def check_user_password(self, user_name: str, password: str):
+    def check_user_password(self, session: Session,  user_name: str, password: str):
         """
         Description
 
@@ -106,7 +102,7 @@ class UserManager:
         Returns:
             The method validates user and password
         """
-        user = self.get_user_by_name(user_name)
+        user = self.get_user_by_name(session, user_name)
 
         if user is not None:
             if user.password == password:

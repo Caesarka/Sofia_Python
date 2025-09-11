@@ -1,13 +1,28 @@
 from sqlalchemy import create_engine, select, update
 from sqlalchemy.orm import Session
-from .task_models import Task, setup_Task_db
+from model.task import Task
 
 
 class TaskManager:
     def __init__(self, engine):
         self.engine = engine
 
-    def add_task(self, title: str, description: str, status: str, priority: str) -> Task | None:
+    def add_task(self, task: Task) -> Task | None:
+        """
+        Description:
+            create new task
+        Args:
+            task: Task
+        Returns:
+            The method creates new Task object or returns None if data isn't correct
+        """
+        with Session(self.engine) as session:
+            session.add(task)
+            session.flush()
+
+            return task
+        
+    def add_task_by_fields(self, title: str, description: str, status: str, priority: str) -> Task | None:
         """
         Description:
             create new task
@@ -23,8 +38,7 @@ class TaskManager:
             existing_task = select(Task).where(Task.title == title)
 
             if session.scalars(existing_task).first():
-                print(f"Task with title {title} already exists")
-                return None
+                raise ValueError(f"Task with title {title} already exists")
 
             new_task = Task(title=title, description=description,
                             status=status, priority=priority)
@@ -52,9 +66,10 @@ class TaskManager:
             if session.scalars(existing_task).first():
                 print(f"Task with title {title} exists")
                 updated_task = update(Task).where(Task.id == id).values(
-                    title=title, status=status, priority=priority)
+                    title=title, description=description, status=status, priority=priority)
                 session.commit()
                 print(f"Task was updated")
+                print(updated_task.id)
                 return updated_task
             else:
                 print(f"There is no task with title {title}")
@@ -64,7 +79,7 @@ class TaskManager:
 if __name__ == "__main__":
     engine = create_engine("sqlite:///to_do_data.db", echo=True)
 
-    setup_Task_db(engine)
+    #setup_Task_db(engine)
 
     # 1. Создать экз.класса t_m
     task_manager = TaskManager(engine)

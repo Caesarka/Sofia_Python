@@ -10,10 +10,10 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 sys.path.append(os.path.dirname(os.path.dirname(
     os.path.realpath(__file__))) + '/server')
 
-from server.model.user.user_models import User
-from server.model.user.user_manager import UserManager
+from model.user import User
+from services.user_manager import UserManager
 
-class ServerTests(unittest.TestCase):
+class UserManagerTests(unittest.TestCase):
     user_manager: UserManager
     engine = None
 

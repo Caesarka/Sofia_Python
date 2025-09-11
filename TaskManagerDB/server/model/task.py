@@ -1,10 +1,6 @@
-from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy import String
-
-
-Base = declarative_base()
-
+from .index import Base
 
 class Task(Base):
     __tablename__ = 'task'
@@ -18,6 +14,3 @@ class Task(Base):
     def __repr__(self) -> str:
         return f"ID(id={self.id!r}, title={self.title!r}, description={self.description!r}, status={self.status!r}, priority={self.priority!r})"
 
-
-def setup_Task_db(engine):
-    Base.metadata.create_all(engine)

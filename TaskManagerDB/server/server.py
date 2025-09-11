@@ -1,17 +1,20 @@
-import crud
-import requests
-import threading
-import time
 from flask import Flask, render_template, request, jsonify
 from flask_restx import Resource, Api, reqparse, fields
 from flask_login import LoginManager, login_user, login_required, logout_user, UserMixin
+
+from db.session import engine, get_db_session, close_db_session, init_app
+from db.index import create_database_and_tables
+from services.user_manager import UserManager
+
 from api.task.index import api as api_task
 from api.tasks.index import api as api_tasks
-from server.model.user.user_models import *
-from server.model.user.user_manager import UserManager
+from model.user import *
 
 app = Flask(__name__, template_folder='views')
 app.secret_key = "wlfnkwgnbkjerngjerbgi"
+
+# ---- INIT SESSION WITH DB
+init_app(app)
 
 api = Api(app)
 login_manager = LoginManager(app)
@@ -24,7 +27,7 @@ test_pwd = 'password'
 
 #engine = create_engine("sqlite:///to_do_data.db", echo=True)
 
-#user_manager = UserManager(engine)
+user_manager = UserManager(engine)
 
 
 
@@ -62,8 +65,10 @@ class Login(Resource):
     @api.expect(user_login, validate=True)
     @api.doc(description='User Login')
     def post(self):
+        db_session = get_db_session()
+        
         data = api.payload
-        result = user_manager.check_user_password(data['username'], data['password'])
+        result = user_manager.check_user_password(db_session, data['username'], data['password'])
         
         if result:
             login_user(test_user, remember=True)
@@ -186,4 +191,5 @@ tasks = [
 
 
 if __name__ == '__main__':
+    create_database_and_tables()
     app.run(debug=True)
