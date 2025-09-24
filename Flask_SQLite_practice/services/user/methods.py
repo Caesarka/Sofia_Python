@@ -1,4 +1,4 @@
-from realty_sql import execute_data
+from services.user.sql import execute_data
 
 
 def get_realties_by_filter(data):

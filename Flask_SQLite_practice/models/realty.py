@@ -25,11 +25,18 @@ class Realty:
     title: str
     price: float
     city: str
+    image: str
+    address: str
 
-    def __init__(self, dict :dict):
-        self.id = dict["id"]
-        self.title = dict["title"]
-        self.price = dict["price"]
-        self.city = dict["city"]
+    def __init__(self, dictData: dict = {}):
+        if not dictData:
+            dictData = {}
+        print(dictData)
+        self.id = dictData.get("id", None)
+        self.title = dictData.get("title", None)
+        self.price = dictData.get("price", None)
+        self.city = dictData.get("city", None)
+        self.image = dictData.get("image", None)
+        self.address = dictData.get("address", None)
         
     
