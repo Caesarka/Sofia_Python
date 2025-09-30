@@ -18,3 +18,5 @@ def post_realty(data):
     }
     result = execute_data('create', new_post)
     return result
+
+

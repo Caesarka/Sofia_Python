@@ -19,12 +19,13 @@ CREATE TABLE IF NOT EXISTS realty (
 SCHEMA_SQL_USER = """
 CREATE TABLE IF NOT EXISTS user (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  name TEXT UNIGUE NOT NULL,
+  name TEXT UNIQUE NOT NULL,
   password TEXT NOT NULL,
-  email TEXT UNIGUE NOT NULL,
+  email TEXT UNIQUE NOT NULL,
   reg_date TEXT DEFAULT CURRENT_TIMESTAMP,
   role TEXT DEFAULT 'user',
   status TEXT DEFAULT 'active'
+);
 """
 
 SCHEMA_SQL_FAVORITE = """
@@ -32,8 +33,9 @@ CREATE TABLE IF NOT EXISTS favorite (
   user_id INTEGER,
   realty_id INTEGER,
   PRIMARY KEY (user_id, realty_id),
-  FOREIN KEY (user_id) REFERENCES user(id),
-  FOREIN KEY (realty_id) REFERENCES realty(id)
+  FOREIGN KEY (user_id) REFERENCES user(id),
+  FOREIGN KEY (realty_id) REFERENCES realty(id)
+);
 """
 
 

@@ -1,19 +1,30 @@
 from dataclasses import dataclass
 from flask_restx import Namespace, fields
 
-ns = Namespace("user", description="Users")
+ns_user = Namespace("user", description="Users")
 
 
-user_model = ns.model("User", {
-    "id":   fields.Integer(readonly=True, description="ID"),
-    "name": fields.String(required=True, description="Name"),
-    "password": fields.String(required=True, description="Password"),
-    "email":  fields.String(required=True, description="Email"),
-    "reg_date":  fields.String(required=True, description="Date of registration"),
-    "role":  fields.String(required=True, description="Role"),
-    "status":  fields.String(required=True, description="Status"),
+user_model = ns_user.model("User", {
+    "id": fields.Integer(readonly=True),
+    "name": fields.String,
+    "email": fields.String,
+    "password": fields.String,
+    "reg_date": fields.String,
+    "role": fields.String,
+    "status": fields.String,
 })
 
+auth_model = ns_user.model("Auth", {
+    "name": fields.String(required=False),
+    "email": fields.String(required=False),
+    "password": fields.String(required=True),
+})
+
+update_model = ns_user.model("UserUpdate", {
+    "name": fields.String,
+    "email": fields.String,
+    "password": fields.String,
+})
 
 
 
@@ -38,5 +49,16 @@ class User:
         self.reg_date = dictData.get("reg_date", None)
         self.role = dictData.get("role", None)
         self.status = dictData.get("status", None)
-        
+
+    def to_dict(self):
+        data = {
+            "id": self.id,
+            "name": self.name,
+        "password": self.password,
+        "email": self.email,
+        "reg_date": self.reg_date,
+        "role": self.role,
+        "status": self.status
+        }
+        return data
     
