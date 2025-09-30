@@ -1,6 +1,6 @@
 from flask import Flask, render_template, send_from_directory
 from flask_restx import Api
-from database import realty, user
+from database import realty
 from services.realty import sql as realty_sql
 from services.user import sql as user_sql
 from resources.realty import ns_realty
@@ -16,10 +16,9 @@ api = Api(app, title="My API", doc="/doc/")
 api.add_namespace(ns_realty, path='/api/realty')
 api.add_namespace(ns_user, path='/api/user')
 
-@app.teardown_appcontext
-def close_realty_db(error):
-    realty.close_db()
-    user.close_db()
+#@app.teardown_appcontext
+#def close_realty_db(error):
+    #realty.close_db()
 
 @app.route("/realty")
 def realty_page():
@@ -41,8 +40,7 @@ def user_page(user_id):
 
 if __name__ == "__main__":
     realty.init_db_if_needed()
-    user.init_db_if_needed()
 
-    app.run(debug=True)
+    app.run(host="0.0.0.0", port=8080, debug=True)
 
 

@@ -4,7 +4,7 @@ from flask_restx import Resource
 
 # PROJECT
 from models.user import ns_user, user_model, auth_model, update_model
-from database.user import get_db
+from database.realty import get_db
 from models.user import User
 from utils.utils import row_to_dict
 from services.user.sql import create, execute_data

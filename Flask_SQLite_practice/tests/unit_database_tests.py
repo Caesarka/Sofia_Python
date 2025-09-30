@@ -12,7 +12,7 @@ class DatabaseTests(unittest.TestCase):
         self.db_fd, self.temp_path = tempfile.mkstemp()
         config.DB_PATH = self.temp_path
         print("\nSetup...")
-        db.close_db()
+        #db.close_db()
         #app.config["TESTING"] = True
         #global DB_PATH
         db.init_db_if_needed()
@@ -20,7 +20,7 @@ class DatabaseTests(unittest.TestCase):
         print("\nSetup Done")
 
     def tearDown(self):
-        db.close_db()
+        #db.close_db()
         os.close(self.db_fd)
         os.unlink(self.temp_path)
 
