@@ -40,7 +40,4 @@ def user_page(user_id):
 
 if __name__ == "__main__":
     realty.init_db_if_needed()
-
     app.run(host="0.0.0.0", port=8080, debug=True)
-
-
