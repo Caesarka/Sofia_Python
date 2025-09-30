@@ -1,88 +1,48 @@
 from flask import Flask, render_template, send_from_directory
 from flask_restx import Api
-from database import realty
-from resources.realty import ns as realty_ns
+from database import realty, user
+from services.realty import sql as realty_sql
+from services.user import sql as user_sql
+from resources.realty import ns_realty
+from resources.user import ns_user
 
 
 
 app = Flask(__name__, template_folder='views', static_folder='static')
+app.secret_key = "supersecret"
 
-@app.get('/')
-def index():
-    # static rendering
-    return render_template('index.html', cards=[
-        {
-            'id': 1,
-            'price': 969000,
-            'title': 'Condo Apartment',
-            'city': 'Toronto',
-            'address': 'Unit 611 - 10 Delisle Avenue',
-        },
-        {
-            'id': 2,
-            'price': 1599999,
-            'title': 'Detached',
-            'city': 'Mississauga',
-            'address': '550 Meadows Blvd',
-        },
-        {
-            'id': 3,
-            'price': 719000,
-            'title': 'Condo Townhouse',
-            'city': 'Richmond Hill',
-            'address': '1521 19th Ave',
-        },
-        {
-            'id': 5,
-            'price': 1390000,
-            'title': 'Detached Bungalow',
-            'city': 'Etobicoke',
-            'address': '37 Sunplains Crescent',
-        },
-        {
-            'id': 6,
-            'price': 1949000,
-            'title': 'Detached',
-            'city': 'North York',
-            'address': '14 Northmount Avenue',
-        },
-        {
-            'id': 7,
-            'price': 1399888,
-            'title': 'Freehold Townhouse',
-            'city': 'North York',
-            'address': '299 Finch Avenue E',
-        },
-        {
-            'id': 8,
-            'price': 799000,
-            'title': '3 bedroom apartment',
-            'city': 'Toronto',
-            'address': 'Unit 3307 - 82 Dalhousie Street',
-        },
-        {
-            'id': 10,
-            'price': 1890000,
-            'title': 'Detached',
-            'city': 'Toronto',
-            'address': '61 Castle Knock Road',
-        },
-        {
-            'id': 11,
-            'price': 1449000,
-            'title': 'Condo Apartment',
-            'city': 'Toronto',
-            'address': 'Unit 911 - 90 Stadium Road S',
-        },
-    ])
+api = Api(app, title="My API", doc="/doc/")
 
+api.add_namespace(ns_realty, path='/api/realty')
+api.add_namespace(ns_user, path='/api/user')
 
-api = Api(app, title="Realty API", doc="/doc/")
-api.add_namespace(realty_ns, path='/api/realty')
+@app.teardown_appcontext
+def close_realty_db(error):
+    realty.close_db()
+    user.close_db()
 
+@app.route("/realty")
+def realty_page():
+    filter_data = {"city": None, "min_price": None, "max_price": None}
+    rows = realty_sql.get_by_filter(filter_data)
+    return render_template("realty_switch.html", cards=rows)
+
+@app.route("/user/<int:user_id>")
+def user_page(user_id):
+    row = user_sql.execute_data("get_user", {'id': user_id})
+    if not row:
+        return {"message": "User not found"}, 404
+    return {
+        "id": row["id"],
+        "name": row["name"],
+        "email": row["email"],
+        "status": row["status"]
+    }
 
 if __name__ == "__main__":
     realty.init_db_if_needed()
+    user.init_db_if_needed()
+
     app.run(debug=True)
 
 

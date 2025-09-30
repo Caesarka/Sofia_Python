@@ -1,61 +1,66 @@
 # SYSTEM
-from flask import request
+from flask import request, session
 from flask_restx import Resource
 
 # PROJECT
-from models.user import ns, user_model
-from services.user import sql
+from models.user import ns_user, user_model, auth_model, update_model
+from database.user import get_db
+from models.user import User
 from utils.utils import row_to_dict
-
-#from .model import ns, realty_input, realty_model
-#from services.realty.realty_methods import get_realties_by_filter, post_realty, get_by_id
+from services.user.sql import create, execute_data
 
 
-@ns.route("/")
-class Users(Resource):
-    @ns.doc(params={
-        "city": "City",
-        "min_price": "Min price",
-        "max_price": "Max price",
-    })
-    @ns.marshal_list_with(realty_model)
-    def get(self):
-        """Get by filter"""
-        data = {
-            'city': request.args.get("city"),
-            'min_price': request.args.get("min_price", type=int),
-            'max_price': request.args.get("max_price", type=int)
-        }
-        rows = sql.get_by_filter(data)
-        return rows
-
-    @ns.expect(realty_input, validate=True)
-    @ns.marshal_with(realty_model, code=201)
+@ns_user.route("/")
+class UserRegister(Resource):
+    @ns_user.expect(user_model, validate=True)
+    @ns_user.marshal_with(user_model, code=201)
     def post(self):
-        """Create new listing"""
         data = self.api.payload
-        row = sql.create(data)
-        return row, 201
+        user = execute_data("create_user", data)
+        return user.to_dict(), 201
 
+    def get(self):
+        uid = session.get("user_id")
+        if not uid:
+            return {"message": "Not logged in"}, 401
+        user = execute_data("get_user", {"id": uid}, fetch="one")
+        if user is None:
+            return {"message": "User not found"}, 404
+        return user.to_dict()
 
-@ns.route("/<int:realty_id>")
-@ns.param("realty_id", "ID")
-class RealtyItem(Resource):
-    @ns.marshal_with(realty_model)
-    def get(self, realty_id):
-        """Get by ID"""
-        row = sql.get_by_id(realty_id)
-        return row
+    @ns_user.expect(update_model)
+    def patch(self):
+        uid = session.get("user_id")
+        if not uid:
+            return {"message": "Not logged in"}, 401
+        data = request.json
+        data["id"] = uid
+        execute_data("update_user", data, fetch="none")
+        return {"message": "User updated"}
+    
+    def delete(self):
+        uid = session.get("user_id")
+        if not uid:
+            return {"message": "Not logged in"}, 401
+        execute_data("delete_user", {"id": uid}, fetch="none")
+        session.clear()
+        return {"message": "User deleted"}
 
-    @ns.expect(realty_input, validate=True)
-    @ns.marshal_with(realty_model)
-    def patch(self, realty_id):
-        """Renew1111 listing (title, price, city)"""
+@ns_user.route("/auth")
+class UserAuth(Resource):
+    @ns_user.expect(auth_model)
+    def post(self):
         data = self.api.payload
-        row = sql.update(realty_id, data)
-        return row
+        user = execute_data("check_user_pass", data, fetch="one")
+        if not user:
+            return {"message": "Invalid credentials"}, 401
+        session["user_id"] = user.id
+        return {"message": "Logged in", "id": user.id}
 
-    def delete(self, realty_id):
-        """Delete listing"""
-        sql.delete(realty_id)
-        return {"message": "deleted", "id": realty_id}, 202
+@ns_user.route("/logout")
+class UserLogout(Resource):
+    def post(self):
+        """Разлогиниться"""
+        session.clear()
+        return {"message": "Logged out"}
+

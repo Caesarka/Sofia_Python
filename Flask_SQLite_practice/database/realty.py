@@ -3,19 +3,19 @@ from flask import g
 from database.config import REALTY_DB_PATH, SCHEMA_SQL_REALTY
 
 def get_db():
-    if "db" not in g:
-        g.db = sqlite3.connect(str(REALTY_DB_PATH))
-        g.db.row_factory = sqlite3.Row
-    return g.db
+    if "realty_db" not in g:
+        g.realty_db = sqlite3.connect(str(REALTY_DB_PATH))
+        g.realty_db.row_factory = sqlite3.Row
+    return g.realty_db
 
 def close_db(e=None):
-    db = g.pop("db", None)
-    if db is not None:
-        db.close()
+    realty_db = g.pop("realty_db", None)
+    if realty_db is not None:
+        realty_db.close()
 
 def init_db_if_needed():
     REALTY_DB_PATH.parent.mkdir(parents=True, exist_ok=True)
-    db = sqlite3.connect(str(REALTY_DB_PATH))
-    db.executescript(SCHEMA_SQL_REALTY)
-    db.commit()
-    db.close()
+    realty_db = sqlite3.connect(str(REALTY_DB_PATH))
+    realty_db.executescript(SCHEMA_SQL_REALTY)
+    realty_db.commit()
+    realty_db.close()

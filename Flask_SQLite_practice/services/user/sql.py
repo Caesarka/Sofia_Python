@@ -1,8 +1,8 @@
-from database.realty import get_db
+from database.user import get_db
 from models.user import User
 
 
-CREATRE_USER = """
+CREATE_USER = """
     INSERT INTO user (name, password, email)
     VALUES (:name, :password, :email)
 """
@@ -10,7 +10,7 @@ CREATRE_USER = """
 CHECK_USER_PASS = """
     SELECT *
     FROM user
-    WHERE name=:name OR email=:email
+    WHERE (name=:name OR email=:email)
     AND password=:password
 """
 
@@ -45,7 +45,7 @@ SET_USER_ACTIVE = """
 """
 
 METHODS = {
-  'create_user': CREATRE_USER,
+  'create_user': CREATE_USER,
   'check_user_pass': CHECK_USER_PASS,
   'get_user': GET_USER,
   'update_user': UPDATE_USER,
@@ -54,42 +54,32 @@ METHODS = {
   'set_user_active': SET_USER_ACTIVE
 }
 
-
-def create_user(params: dict):
+def execute_data(method: str, params: dict, fetch: str = "none"):
+    sql = METHODS.get(method)
+    if not sql:
+        raise ValueError(f"Method {method} does not exist")
     db = get_db()
-    rows = db.execute(CREATRE_USER, params).fetchall()
-    return [User(dict(row)) for row in rows]
+    cur = db.execute(sql, params)
+    if method == "create_user":
+        db.commit()
+        params['id'] = cur.lastrowid
+        return User(dict(params))
+    if fetch == "all":
+        rows = cur.fetchall()
+        return [User(dict(row)) for row in rows]
+    elif fetch == "one":
 
-#def get_by_id(id: int) -> Realty:
-#    db = get_db()
-#    realty = db.execute(GET_BY_ID, {"id": id}).fetchone()
-#    return Realty(dict(realty))
-#
-#def create(realty):
-#    db = get_db()
-#    row = db.execute(CREATRE_LISTING, realty)
-#    db.commit()
-#    realty["id"] = row.lastrowid
-#    return Realty(dict(realty))
-#
-#def update(realty_id: int, params: dict):
-#    db = get_db()
-#    rowIdData = {
-#        'id': realty_id
-#    }
-#    rowIdData.update(params)
-#    db.execute(UPDATE_LISTING, rowIdData)
-#    db.commit()
-#    
-#    realty = get_by_id(realty_id)
-#    return realty
-#
-#def delete(realty_id: int):
-#    db = get_db()
-#    db.execute(DELETE_LISTING, {"id": realty_id})
-#    db.commit()
+        row = cur.fetchone()
+        return User(dict(row)) if row else None
+    db.commit()
 
 
 
-# if __name__ == "__main__":
-    # execute_data('get_filter', [])
+def create(user):
+    db = get_db()
+    row = db.execute(CREATE_USER, user)
+    db.commit()
+    user["id"] = row.lastrowid
+    print(f"User with id {user['id']} was created")
+    return User(dict(user))
+
