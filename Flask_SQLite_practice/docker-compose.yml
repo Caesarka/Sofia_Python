@@ -1,0 +1,16 @@
+services:
+  web:
+    build:
+      context: .
+
+  acceptance-tests:
+    build:
+      context: .
+    entrypoint: ["/bin/bash", "-lc"]
+    command: ["python -m unittest discover -s tests -p api_tests.py -v"]
+    environment:
+      - TARGET_URL=http://web:8080/
+    depends_on:
+      - web
+    profiles:
+      - acceptance

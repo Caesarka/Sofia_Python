@@ -11,8 +11,8 @@ GET_BY_FILTER = """
 """
 
 CREATRE_LISTING = """
-    INSERT INTO realty (title, price, city)
-    VALUES (:title, :price, :city)
+    INSERT INTO realty (title, price, city, address)
+    VALUES (:title, :price, :city, :address)
 """
 
 GET_BY_ID = """
@@ -55,24 +55,28 @@ def get_by_id(id: int) -> Realty:
 
 def create(realty):
     db = get_db()
-    row = db.execute(CREATRE_LISTING, realty)
-    db.commit()
-    realty["id"] = row.lastrowid
-    db.close()
-    return Realty(dict(realty))
+    try:
+        row = db.execute(CREATRE_LISTING, realty)
+        db.commit()
+        realty["id"] = row.lastrowid
+        return Realty(dict(realty))
+    finally:
+        db.close()
 
 def update(realty_id: int, params: dict):
     db = get_db()
-    rowIdData = {
-        'id': realty_id
-    }
-    rowIdData.update(params)
-    db.execute(UPDATE_LISTING, rowIdData)
-    db.commit()
-    
-    realty = get_by_id(realty_id)
-    db.close()
-    return realty
+    try:
+        rowIdData = {
+            'id': realty_id
+        }
+        rowIdData.update(params)
+        db.execute(UPDATE_LISTING, rowIdData)
+        db.commit()
+        
+        realty = get_by_id(realty_id)
+        return realty
+    finally:
+        db.close()
 
 def delete(realty_id: int):
     db = get_db()

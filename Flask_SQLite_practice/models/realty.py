@@ -9,12 +9,14 @@ realty_model = ns_realty.model("Realty", {
     "title": fields.String(required=True, description="Name"),
     "price": fields.Integer(required=True, description="Price"),
     "city":  fields.String(required=True, description="City"),
+    "address":  fields.String(required=True, description="Address"),
 })
 
 realty_input = ns_realty.model("RealtyInput", {
     "title": fields.String(required=True),
     "price": fields.Integer(required=True),
     "city": fields.String(required=True),
+    "address":  fields.String(required=True, description="Address"),
 })
 
 
