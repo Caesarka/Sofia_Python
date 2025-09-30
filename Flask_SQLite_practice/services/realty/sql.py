@@ -44,11 +44,13 @@ METHODS = {
 def get_by_filter(params: dict):
     db = get_db()
     rows = db.execute(GET_BY_FILTER, params).fetchall()
+    db.close()
     return [Realty(dict(row)) for row in rows]
 
 def get_by_id(id: int) -> Realty:
     db = get_db()
     realty = db.execute(GET_BY_ID, {"id": id}).fetchone()
+    db.close()
     return Realty(dict(realty))
 
 def create(realty):
@@ -56,6 +58,7 @@ def create(realty):
     row = db.execute(CREATRE_LISTING, realty)
     db.commit()
     realty["id"] = row.lastrowid
+    db.close()
     return Realty(dict(realty))
 
 def update(realty_id: int, params: dict):
@@ -68,12 +71,14 @@ def update(realty_id: int, params: dict):
     db.commit()
     
     realty = get_by_id(realty_id)
+    db.close()
     return realty
 
 def delete(realty_id: int):
     db = get_db()
     db.execute(DELETE_LISTING, {"id": realty_id})
     db.commit()
+    db.close()
 
 
 

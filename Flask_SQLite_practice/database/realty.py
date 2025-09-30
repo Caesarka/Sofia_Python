@@ -31,25 +31,24 @@ CREATE TABLE IF NOT EXISTS favorite (
 );
 """
 
-__realty_db_conn = None
+#__realty_db_conn = None
 
 def get_db():
-    global __realty_db_conn
-    if __realty_db_conn is None:
-        print(f"\nConnecting to DB at {config.DB_PATH}")
-        __realty_db_conn = sqlite3.connect(str(config.DB_PATH))
-        __realty_db_conn.row_factory = sqlite3.Row
-    return __realty_db_conn
+    print(f"\nConnecting to DB at {config.DB_PATH}")
+    db = sqlite3.connect(str(config.DB_PATH))
+    db.row_factory = sqlite3.Row
+    return db
 
-def close_db(e=None):
-    global __realty_db_conn
-    if __realty_db_conn is not None:
-        print("\nClosing DB")
-        __realty_db_conn.close()
-        __realty_db_conn = None
+#def close_db(e=None):
+#    global __realty_db_conn
+#    if __realty_db_conn is not None:
+#        print("\nClosing DB")
+#        __realty_db_conn.close()
+#        __realty_db_conn = None
 
 def init_db_if_needed():
     Path(config.DB_PATH).parent.mkdir(parents=True, exist_ok=True)
     realty_db = get_db()
     realty_db.executescript(SQL_SCHEMA)
     realty_db.commit()
+    realty_db.close()

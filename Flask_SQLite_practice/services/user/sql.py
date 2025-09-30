@@ -1,4 +1,4 @@
-from database.user import get_db
+from database.realty import get_db
 from models.user import User
 
 
@@ -72,6 +72,7 @@ def execute_data(method: str, params: dict, fetch: str = "none"):
         row = cur.fetchone()
         return User(dict(row)) if row else None
     db.commit()
+    db.close()
 
 
 
@@ -81,5 +82,6 @@ def create(user):
     db.commit()
     user["id"] = row.lastrowid
     print(f"User with id {user['id']} was created")
+    db.close()
     return User(dict(user))
 
