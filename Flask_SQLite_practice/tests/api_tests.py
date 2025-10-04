@@ -16,7 +16,7 @@ class ServerTests(unittest.TestCase):
            "title": "My title " + str(guid),
            "price": 1,
            "city": "My city",
-           "address": "address "
+           "address": "address"
         }
         response = requests.post(url, json=payload)
         print("Response:", response.text)

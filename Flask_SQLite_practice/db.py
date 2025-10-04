@@ -1,0 +1,64 @@
+import sqlite3
+from pathlib import Path
+
+
+BASE_DIR = Path(__file__).parent
+DB_PATH = BASE_DIR / "database.db"
+
+
+SQL_SCHEMA = """
+CREATE TABLE IF NOT EXISTS realty (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  title TEXT NOT NULL,
+  price INTEGER NOT NULL,
+  city TEXT NOT NULL,
+  image TEXT,
+  address TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS user (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT UNIQUE NOT NULL,
+  password TEXT NOT NULL,
+  email TEXT UNIQUE NOT NULL,
+  reg_date TEXT DEFAULT CURRENT_TIMESTAMP,
+  role TEXT DEFAULT 'user',
+  status TEXT DEFAULT 'active'
+);
+
+CREATE TABLE IF NOT EXISTS favorite (
+  user_id INTEGER,
+  realty_id INTEGER,
+  PRIMARY KEY (user_id, realty_id),
+  FOREIGN KEY (user_id) REFERENCES user(id),
+  FOREIGN KEY (realty_id) REFERENCES realty(id)
+);
+"""
+
+def get_db():
+    print(f"\nConnecting to DB at {DB_PATH}")
+    conn = sqlite3.connect(str(DB_PATH))
+    conn.row_factory = sqlite3.Row
+
+    return conn
+
+def init_db_if_needed():
+    Path(DB_PATH).parent.mkdir(parents=True, exist_ok=True)
+    database = get_db()
+    database.executescript(SQL_SCHEMA)
+    database.commit()
+    database.close()
+    #with get_db() as db:
+    #    db.executescript(SQL_USER + "\n" + SQL_REALTY)
+    #    print(f"Database initialized at {DB_PATH}")
+    #if not os.path.exists(DB_PATH):
+    #  conn = sqlite3.connect(DB_PATH)
+    #  cursor = conn.cursor()
+    #  cursor.executescript(SQL_SCHEMA)
+    #  conn.commit()
+    #  conn.close()
+    #  print("Database created and initialized.")
+    #else:
+    #    print("Database already exists.")
+
+
