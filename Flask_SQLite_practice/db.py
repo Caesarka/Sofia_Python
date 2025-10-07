@@ -39,7 +39,6 @@ def get_db():
     print(f"\nConnecting to DB at {DB_PATH}")
     conn = sqlite3.connect(str(DB_PATH))
     conn.row_factory = sqlite3.Row
-
     return conn
 
 def init_db_if_needed():
@@ -48,17 +47,6 @@ def init_db_if_needed():
     database.executescript(SQL_SCHEMA)
     database.commit()
     database.close()
-    #with get_db() as db:
-    #    db.executescript(SQL_USER + "\n" + SQL_REALTY)
-    #    print(f"Database initialized at {DB_PATH}")
-    #if not os.path.exists(DB_PATH):
-    #  conn = sqlite3.connect(DB_PATH)
-    #  cursor = conn.cursor()
-    #  cursor.executescript(SQL_SCHEMA)
-    #  conn.commit()
-    #  conn.close()
-    #  print("Database created and initialized.")
-    #else:
-    #    print("Database already exists.")
+
 
 

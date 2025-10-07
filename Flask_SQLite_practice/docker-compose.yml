@@ -9,7 +9,7 @@ services:
     entrypoint: ["/bin/bash", "-lc"]
     command: ["python -m unittest discover -s tests -p api_tests.py -v"]
     environment:
-      - TARGET_URL=http://web:8080/
+      - TARGET_URL=http://web:5000/
     depends_on:
       - web
     profiles:
