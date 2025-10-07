@@ -4,6 +4,8 @@ import unittest
 
 #from database.config import DB_PATH
 import db as db
+from entities.realty import Realty
+from models.realty_model import RealtyModel
 
 class DatabaseTests(unittest.TestCase):
 
@@ -28,6 +30,23 @@ class DatabaseTests(unittest.TestCase):
         self.assertIn('user', tables)
         self.assertIn('favorite', tables)
         conn.close()
+
+    def test_create_realty(self):
+        print(f"\nTesting DB at {db.DB_PATH}")
+        conn = db.get_db()
+        cursor = conn.cursor()
+        cursor.execute("INSERT INTO realty (title, price, city, address, image) VALUES (?, ?, ?, ?, ?)",
+            ('New realty', 10, 'Paradise', 'Holyland', 'some_image'))
+        conn.commit()
+        id = cursor.lastrowid
+        realty = Realty(dict(conn.execute("SELECT * FROM realty WHERE id=?", (id,)).fetchone()))
+        self.assertEqual('New realty', realty.title)
+        self.assertEqual(10, realty.price)
+        self.assertEqual('Paradise', realty.city)
+        self.assertEqual('Holyland', realty.address)
+        self.assertEqual('some_image', realty.image)
+        conn.close()
+
 
 if __name__ == "__main__":
     unittest.main()

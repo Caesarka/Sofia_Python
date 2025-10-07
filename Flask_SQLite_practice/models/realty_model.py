@@ -29,3 +29,4 @@ class RealtyModel:
         rows = db.execute("SELECT * FROM realty").fetchall()
         db.close()
         return [Realty(dict(row)) for row in rows]
+    
