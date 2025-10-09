@@ -1,32 +1,33 @@
-from db import get_db
-from entities.realty import Realty
+from pydantic import BaseModel
 
-class RealtyModel:
-    @staticmethod
-    def create(title, price, city, address, image=None):
-        db = get_db()
-        cursor = db.cursor()
-        cursor.execute(
-            "INSERT INTO realty (title, price, city, address, image) VALUES (?, ?, ?, ?, ?)",
-            (title, price, city, address, image)
-        )
-        db.commit()
-        db.close()
-        return RealtyModel.get_by_id(cursor.lastrowid)
+class Realty(BaseModel):
     
-    @staticmethod
-    def get_by_id(realty_id):
-        db = get_db()
-        row = db.execute("SELECT * FROM realty WHERE id=?", (realty_id,)).fetchone()
-        if row:
-            return Realty(dict(row))
-        db.close()
-        return None
+    id: int | None = None
+    title: str
+    price: float
+    city: str
+    address: str
+    image: str
 
-    @staticmethod
-    def list_all():
-        db = get_db()
-        rows = db.execute("SELECT * FROM realty").fetchall()
-        db.close()
-        return [Realty(dict(row)) for row in rows]
-    
+    class Config:
+        orm_mode = True
+#        print(dictData)
+#        print(type(dictData))
+#
+#        self.id = dictData.get("id", None)
+#        self.title = dictData.get("title", None)
+#        self.price = dictData.get("price", None)
+#        self.city = dictData.get("city", None)
+#        self.address = dictData.get("address", None)
+#        self.image = dictData.get("image", None)
+#
+#    def to_dict(self):
+#        data = {
+#            "id": self.id,
+#            "title": self.title,
+#            "price": self.price,
+#            "city": self.city,
+#            "address": self.address,
+#            "image": self.image
+#        }
+#        return data

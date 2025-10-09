@@ -1,6 +1,6 @@
 import sqlite3
 from pathlib import Path
-
+from models.realty_model import Realty
 
 BASE_DIR = Path(__file__).parent
 DB_PATH = BASE_DIR / "database.db"
@@ -48,5 +48,28 @@ def init_db_if_needed():
     database.commit()
     database.close()
 
+
+
+def create_realty(realty: Realty):
+    db = get_db()
+    cursor = db.cursor()
+    cursor.execute(
+        "INSERT INTO realty (title, price, city, address, image) VALUES (?, ?, ?, ?, ?)",
+        (realty.title, realty.price, realty.city, realty.address, realty.image)
+    )
+    realty.id = cursor.lastrowid
+    db.commit()
+    db.close()
+
+def get_realty(realty_id: int) -> Realty:
+    db = get_db()
+    cur = db.cursor()
+    cur.execute("SELECT * FROM realty WHERE id=?", (realty_id,))
+    realty = cur.fetchone()
+    print(realty)
+    print(type(realty))
+    db.close()
+    return Realty.model_validate(dict(realty))
+    
 
 
