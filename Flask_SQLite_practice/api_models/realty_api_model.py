@@ -10,11 +10,3 @@ realty_model = ns_realty.model("Realty", {
     "address":  fields.String(required=True, description="Address"),
     "image": fields.String(required=False),
 })
-
-realty_input = ns_realty.model("RealtyInput", {
-    "title": fields.String(required=True),
-    "price": fields.Integer(required=True),
-    "city": fields.String(required=True),
-    "address":  fields.String(required=True, description="Address"),
-    "image": fields.String(required=False),
-})
