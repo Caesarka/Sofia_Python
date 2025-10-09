@@ -7,7 +7,7 @@ class Realty(BaseModel):
     price: float
     city: str
     address: str
-    image: str
+    image: str | None = None
 
     class Config:
         orm_mode = True

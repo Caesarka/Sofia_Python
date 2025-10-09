@@ -17,12 +17,10 @@ class DatabaseTests(unittest.TestCase):
         print("\nSetup Done")
 
     def tearDown(self):
-        pass
-        #os.close(self.db_fd)
         os.unlink(self.temp_path)
 
     def test_empty_db_schema(self):
-        print(f"\nTesting DB at {db.DB_PATH}")
+        #print(f"\nTesting DB at {db.DB_PATH}")
         conn = db.get_db()
         cursor = conn.cursor()
         cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
@@ -33,13 +31,38 @@ class DatabaseTests(unittest.TestCase):
         conn.close()
 
     def test_create_realty(self):
-        print(f"\nTesting DB at {db.DB_PATH}")
+        #print(f"\nTesting DB at {db.DB_PATH}")
         realty = Realty(title="Koshkin dom", price=1000, city="Katcity", address="Tree street", image="some_image")
         db.create_realty(realty)
         print(realty.id)
         new_realty = db.get_realty(realty.id)
         self.assertEqual(new_realty.id, realty.id)
         self.assertEqual(new_realty.title, realty.title)
+
+    def test_get_realties(self):
+        #print(f"\nTesting DB at {db.DB_PATH}")
+        realty = Realty(title="Koshkin dom", price=1000, city="Katcity", address="Tree street", image="some_image")
+        db.create_realty(realty)
+        realties = db.get_all_realties()
+        self.assertEqual(len(realties), 1)
+
+    def test_get_realties_list_is_emply(self):
+        realties = db.get_all_realties()
+        self.assertEqual(realties, [])
+
+    def test_get_realty(self):
+        with self.assertRaises(KeyError) as context:
+            db.get_realty(1)
+        self.assertIn("not found", str(context.exception))
+
+    def test_delete(self):
+        realty = Realty(title="Koshkin dom", price=1000, city="Katcity", address="Tree street", image="some_image")
+        db.create_realty(realty)
+        result = db.delete_realty(realty.id)
+        self.assertTrue(result)
+        result = db.delete_realty(10)
+        self.assertFalse(result)
+
 
 
 
