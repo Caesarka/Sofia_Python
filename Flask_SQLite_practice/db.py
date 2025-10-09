@@ -52,24 +52,49 @@ def init_db_if_needed():
 
 def create_realty(realty: Realty):
     db = get_db()
-    cursor = db.cursor()
-    cursor.execute(
-        "INSERT INTO realty (title, price, city, address, image) VALUES (?, ?, ?, ?, ?)",
-        (realty.title, realty.price, realty.city, realty.address, realty.image)
-    )
-    realty.id = cursor.lastrowid
-    db.commit()
-    db.close()
+    try:
+        cursor = db.cursor()
+        cursor.execute(
+            "INSERT INTO realty (title, price, city, address, image) VALUES (?, ?, ?, ?, ?)",
+            (realty.title, realty.price, realty.city, realty.address, realty.image)
+        )
+        realty.id = cursor.lastrowid
+        db.commit()
+    finally:
+        db.close()
 
-def get_realty(realty_id: int) -> Realty:
+def get_realty(realty_id: int) -> Realty | None:
     db = get_db()
-    cur = db.cursor()
-    cur.execute("SELECT * FROM realty WHERE id=?", (realty_id,))
-    realty = cur.fetchone()
-    print(realty)
-    print(type(realty))
-    db.close()
-    return Realty.model_validate(dict(realty))
+    try:
+        cur = db.cursor()
+        cur.execute("SELECT * FROM realty WHERE id=?", (realty_id,))
+        realty = cur.fetchone()
+        print(realty)
+        print(type(realty))
+        if not realty:
+            raise KeyError(f"Realty with id {realty_id} not found")
+        return Realty.model_validate(dict(realty))
+    finally:
+        db.close()
+
     
+def get_all_realties() -> list[Realty]:
+    db = get_db()
+    try:
+        cur = db.cursor()
+        cur.execute("SELECT * FROM realty")
+        rows = cur.fetchall()
+        return [Realty.model_validate(dict(row)) for row in rows]
+    finally:
+        db.close()
 
 
+def delete_realty(realty_id: int):
+    db = get_db()
+    try:
+        cur = db.cursor()
+        cur.execute("DELETE FROM realty WHERE id=?", (realty_id,))
+        db.commit()
+        return True if cur.rowcount != 0 else False 
+    finally:
+        db.close()
