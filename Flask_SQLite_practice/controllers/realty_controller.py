@@ -32,6 +32,7 @@ class RealtyList(Resource):
 
     @ns_realty.doc(responses={200: "No content"})
     def put(self, realty_id):
+        raise Exception("Privet")
         realty = Realty.model_validate(request.json)
         if realty.id != realty_id:
             ns_realty.abort(400, f"Realty id does not match")
