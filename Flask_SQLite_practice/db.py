@@ -88,6 +88,21 @@ def get_all_realties() -> list[Realty]:
     finally:
         db.close()
 
+def update_realty(realty: Realty):
+    if realty.id <= 0 | realty.id == None | type(realty.id) != int:
+        raise KeyError(f"Realty does not have id specified")
+    db = get_db()
+    try:
+        cur = db.cursor()
+        cur.execute("UPDATE realty SET title=?, price=?, city=?, address=?, image=? WHERE id=? ", (realty.title, realty.price, realty.city, realty.address, realty.image, realty.id))
+        if cur.rowcount == 0:
+            raise KeyError(f"Realty with id {realty.id} does not exist")
+        db.commit()
+    finally:
+        db.close()
+
+
+
 
 def delete_realty(realty_id: int):
     db = get_db()

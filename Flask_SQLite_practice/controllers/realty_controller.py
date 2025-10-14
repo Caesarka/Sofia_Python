@@ -29,12 +29,25 @@ class RealtyList(Resource):
         except Exception:
             ns_realty.abort(404, f"Realty with id={realty_id} not found")
 
+
+    @ns_realty.doc(responses={200: "No content"})
+    def put(self, realty_id):
+        realty = Realty.model_validate(request.json)
+        if realty.id != realty_id:
+            ns_realty.abort(400, f"Realty id does not match")
+        try:
+            db.update_realty(realty)
+            return {}, 200
+        except Exception:
+            ns_realty.abort(404, f"Realty with id={realty_id} not found")
+
+
     @ns_realty.marshal_with(realty_model)
     def delete(self, realty_id):
         try:
             is_deleted = db.delete_realty(realty_id)
             if is_deleted:
-                return {'message': f'Task. {realty_id} deleted'}, 200
+                return {'message': f'Task {realty_id} deleted'}, 200
             else:
                 return {'message': f'Task {realty_id} not found'}, 404
         except Exception as e:

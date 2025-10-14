@@ -31,7 +31,6 @@ class DatabaseTests(unittest.TestCase):
         conn.close()
 
     def test_create_realty(self):
-        #print(f"\nTesting DB at {db.DB_PATH}")
         realty = Realty(title="Koshkin dom", price=1000, city="Katcity", address="Tree street", image="some_image")
         db.create_realty(realty)
         print(realty.id)
@@ -40,7 +39,6 @@ class DatabaseTests(unittest.TestCase):
         self.assertEqual(new_realty.title, realty.title)
 
     def test_get_realties(self):
-        #print(f"\nTesting DB at {db.DB_PATH}")
         realty = Realty(title="Koshkin dom", price=1000, city="Katcity", address="Tree street", image="some_image")
         db.create_realty(realty)
         realties = db.get_all_realties()
@@ -63,7 +61,15 @@ class DatabaseTests(unittest.TestCase):
         result = db.delete_realty(10)
         self.assertFalse(result)
 
-
+    def test_update(self):
+        realty = Realty(title="Koshkin dom", price=1000, city="Katcity", address="Tree street", image="some_image")
+        db.create_realty(realty)
+        update_realty = Realty(title="Mishkin dom", price=1000, city="Katcity", address="Tree street", image="some_image", id=realty.id)
+        db.update_realty(update_realty)
+        new_realty = db.get_realty(update_realty.id)
+        self.assertEqual(new_realty, update_realty)
+        update_realty.title = "aeraherh"
+        self.assertNotEqual(new_realty, update_realty)
 
 
 
