@@ -1,6 +1,7 @@
 import sqlite3
 from pathlib import Path
 from models.realty_model import Realty
+from models.user_model import User
 
 BASE_DIR = Path(__file__).parent
 DB_PATH = BASE_DIR / "database.db"
@@ -49,7 +50,7 @@ def init_db_if_needed():
     database.close()
 
 
-
+# realty
 def create_realty(realty: Realty):
     db = get_db()
     try:
@@ -62,6 +63,7 @@ def create_realty(realty: Realty):
         db.commit()
     finally:
         db.close()
+
 
 def get_realty(realty_id: int) -> Realty | None:
     db = get_db()
@@ -77,7 +79,7 @@ def get_realty(realty_id: int) -> Realty | None:
     finally:
         db.close()
 
-    
+
 def get_all_realties() -> list[Realty]:
     db = get_db()
     try:
@@ -88,6 +90,7 @@ def get_all_realties() -> list[Realty]:
     finally:
         db.close()
 
+
 def update_realty(realty: Realty):
     if realty.id <= 0 | realty.id == None | type(realty.id) != int:
         raise KeyError(f"Realty does not have id specified")
@@ -97,11 +100,10 @@ def update_realty(realty: Realty):
         cur.execute("UPDATE realty SET title=?, price=?, city=?, address=?, image=? WHERE id=? ", (realty.title, realty.price, realty.city, realty.address, realty.image, realty.id))
         if cur.rowcount == 0:
             raise KeyError(f"Realty with id {realty.id} does not exist")
+
         db.commit()
     finally:
         db.close()
-
-
 
 
 def delete_realty(realty_id: int):
@@ -111,5 +113,72 @@ def delete_realty(realty_id: int):
         cur.execute("DELETE FROM realty WHERE id=?", (realty_id,))
         db.commit()
         return True if cur.rowcount != 0 else False 
+    finally:
+        db.close()
+
+
+
+# user
+def register_user(user: User):
+    db = get_db()
+    try:
+        cursor = db.cursor()
+        cursor.execute(
+            "INSERT INTO user (name, email, password, reg_date, role, status) VALUES (?, ?, ?, ?, ?, ?)",
+            (user.name, user.email, user.password, user.reg_date, user.role, user.status)
+        )
+        user.id = cursor.lastrowid
+        db.commit()
+    finally:
+        db.close()
+
+
+def get_user(user_id: int) -> User | None:
+    db = get_db()
+    try:
+        cur = db.cursor()
+        cur.execute("SELECT * FROM user WHERE id=?", (user_id,))
+        user = cur.fetchone()
+        print(user)
+        print(type(user))
+        if not user:
+            raise KeyError(f"User with id {user_id} not found")
+        return User.model_validate(dict(user))
+    finally:
+        db.close()
+
+
+def get_all_users() -> list[User]:
+    db = get_db()
+    try:
+        cur = db.cursor()
+        cur.execute("SELECT * FROM user")
+        rows = cur.fetchall()
+        return [User.model_validate(dict(row)) for row in rows]
+    finally:
+        db.close()
+
+
+def update_user(user: User):
+    if user.id <= 0 | user.id == None | type(user.id) != int:
+        raise KeyError(f"User does not have id specified")
+    db = get_db()
+    try:
+        cur = db.cursor()
+        cur.execute("UPDATE user SET name=?, email=?, password=? WHERE id=?", (user.name, user.email, user.password, user.id))
+        if cur.rowcount == 0:
+            raise KeyError(f"User with id {user.id} does not exist")
+
+        db.commit()
+    finally:
+        db.close()
+
+
+def delete_user(user_id: int):
+    db = get_db()
+    try:
+        cur = db.cursor()
+        cur.execute("UPDATE user SET status=? WHERE id=?", ("inactive", user_id,))
+        db.commit()
     finally:
         db.close()
