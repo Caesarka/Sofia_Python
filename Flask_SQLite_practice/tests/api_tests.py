@@ -21,17 +21,19 @@ class ServerTests(unittest.TestCase):
            "image": "image",
         }
         response = requests.post(url, json=payload)
-        print("Response:", response.text)
+        print("Response:", response.json())
+        print(type(response))
         print("Status:", response.status_code)
         self.assertEqual(response.status_code, 201)
 
-        response = requests.get(url)
+        response = requests.get(f"{url}/{response.json()["id"]}")
         print("Response: ", response.text)
         self.assertEqual(response.status_code, 200)
         data = response.json()
         print("Data: ", data)
         print("Data type: ", type(data))
-        found = any(payload["title"] == item.get("title") for item in data)
+        #found = any(payload["title"] == item.get("title") for item in data)
+        found = payload["title"] == data.get("title")
         self.assertTrue(found, f"Response does not contain item with title {payload['title']}")
 
     def test_delete_realty(self):
@@ -79,7 +81,30 @@ class ServerTests(unittest.TestCase):
         self.assertEqual(check_response["title"], "Updated title")
         self.assertEqual(check_response["price"], 44355)
 
+    def test_post_get_user(self):
+        url = f"{self.url}/api/user/register"
+        payload = {
+           "name": "My name " + str(uuid.uuid4()),
+           "email": "myem" + str(uuid.uuid4()) + "ail@mail.com",
+           "password": "hetryi459865ruhyrkjt86",
+           "reg_date": "10.15.2025.11:00AM",
+           "role": "user",
+           "status": "active"
+        }
+        response = requests.post(url, json=payload)
+        print("Response:", response.text)
+        print("Status:", response.status_code)
+        self.assertEqual(response.status_code, 201)
 
+        response = requests.get(f"{self.url}/api/user/{response.json()["id"]}")
+        print("Response: ", response.text)
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        print("Data: ", data)
+        print("Data type: ", type(data))
+        found = payload["name"] == data.get("name")
+        #found = any(payload["email"] == item.get("email") for item in data)
+        self.assertTrue(found, f"Response does not contain item with email {payload['email']}")
 
 if __name__ == '__main__':
     unittest.main()
