@@ -17,8 +17,10 @@ class DatabaseTests(unittest.TestCase):
         db.init_db_if_needed()
         print("\nSetup Done")
 
+
     def tearDown(self):
         os.unlink(self.temp_path)
+
 
     def test_empty_db_schema(self):
         #print(f"\nTesting DB at {db.DB_PATH}")
@@ -31,6 +33,8 @@ class DatabaseTests(unittest.TestCase):
         self.assertIn('favorite', tables)
         conn.close()
 
+
+# realty
     def test_create_realty(self):
         realty = Realty(title="Koshkin dom", price=1000, city="Katcity", address="Tree street", image="some_image")
         db.create_realty(realty)
@@ -39,20 +43,24 @@ class DatabaseTests(unittest.TestCase):
         self.assertEqual(new_realty.id, realty.id)
         self.assertEqual(new_realty.title, realty.title)
 
+
     def test_get_realties(self):
         realty = Realty(title="Koshkin dom", price=1000, city="Katcity", address="Tree street", image="some_image")
         db.create_realty(realty)
         realties = db.get_all_realties()
         self.assertEqual(len(realties), 1)
 
+
     def test_get_realties_list_is_emply(self):
         realties = db.get_all_realties()
         self.assertEqual(realties, [])
+
 
     def test_get_realty(self):
         with self.assertRaises(KeyError) as context:
             db.get_realty(1)
         self.assertIn("not found", str(context.exception))
+
 
     def test_delete_realty(self):
         realty = Realty(title="Koshkin dom", price=1000, city="Katcity", address="Tree street", image="some_image")
@@ -61,6 +69,7 @@ class DatabaseTests(unittest.TestCase):
         self.assertTrue(result)
         result = db.delete_realty(10)
         self.assertFalse(result)
+
 
     def test_update_realty(self):
         realty = Realty(title="Koshkin dom", price=1000, city="Katcity", address="Tree street", image="some_image")
@@ -72,6 +81,7 @@ class DatabaseTests(unittest.TestCase):
         update_realty.title = "aeraherh"
         self.assertNotEqual(new_realty, update_realty)
 
+#user
     def test_register_user(self):
         user = User(name="Julianna", email="my@mail.com", password="hetryi459865ruhyrkjt86", reg_date="10.15.2025.11:00AM", role="user", status="active")
         db.register_user(user)
@@ -79,6 +89,7 @@ class DatabaseTests(unittest.TestCase):
         new_user = db.get_user(user.id)
         self.assertEqual(new_user.id, user.id)
         self.assertEqual(new_user.email, user.email)
+
 
     def test_get_users(self):
         user = User(name="Julianna", email="my@mail.com", password="hetryi459865ruhyrkjt86", reg_date="10.15.2025.11:00AM", role="user", status="active")
