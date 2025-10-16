@@ -69,7 +69,7 @@
 #        return {"message": "Logged out"}
 from flask_restx import Resource
 from flask import request
-from models.user_model import UserModel
+from models.user_model import User
 from api_models.user_api_model import ns_user, auth_model, user_model
 
 @ns_user.route("/register")
@@ -77,7 +77,7 @@ class Register(Resource):
     @ns_user.expect(auth_model)
     def post(self):
         data = request.json
-        user = UserModel.create(data.get("name"), data.get("email"), data.get("password"))
+        user = User.create(data.get("name"), data.get("email"), data.get("password"))
         return user.to_dict(), 201
 
 @ns_user.route("/login")
@@ -86,7 +86,7 @@ class Login(Resource):
     @ns_user.marshal_with(user_model)
     def post(self):
         data = request.json
-        user = UserModel.get_by_email(data.get("email"))
-        if user and user.password == UserModel.hash_password(data.get("password")):
+        user = User.get_by_email(data.get("email"))
+        if user and user.password == User.hash_password(data.get("password")):
             return {"message": f"Welcome {user.name}"}
         return {"message": "Invalid credentials"}, 401
