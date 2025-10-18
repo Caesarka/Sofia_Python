@@ -195,5 +195,6 @@ def delete_user(user_id: int):
         cur = db.cursor()
         cur.execute("UPDATE user SET status=? WHERE id=?", ("inactive", user_id,))
         db.commit()
+        return True if cur.rowcount != 0 else False
     finally:
         db.close()

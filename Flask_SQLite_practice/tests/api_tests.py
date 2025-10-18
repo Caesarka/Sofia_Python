@@ -140,9 +140,23 @@ class ServerTests(unittest.TestCase):
 
 
     def test_delete_user(self):
-        self.login_buyer()
-        response = self.session.delete(f"{self.url}/api/user/profile")
-        self.assertEqual(response.status_code, 200)
+            url = f"{self.url}/api/user/"
+            payload = {
+           "name": "My name " + str(uuid.uuid4()),
+           "email": "myem" + str(uuid.uuid4()) + "ail@mail.com",
+            "password": "hetryi459865ruhyrkjt86",
+            "reg_date": "10.15.2025.11:00AM",
+            "role": "user",
+            "status": "active"
+            }
+            response = requests.post(f"{url}/register", json=payload)
+
+            user_id = response.json()["id"]
+            print(user_id)
+            print(type(user_id))
+            print(f"{url}{user_id}")
+            response = requests.delete(f"{url}{user_id}")
+            self.assertEqual(response.status_code, 200)
         
 if __name__ == '__main__':
     unittest.main()
