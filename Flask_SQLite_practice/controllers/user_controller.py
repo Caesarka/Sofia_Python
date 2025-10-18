@@ -52,13 +52,13 @@ class UserList(Resource):
         except Exception:
             ns_user.abort(404, f"User not found")
 
-    @ns_user.marshal_with(user_model)
+    @ns_user.doc()
     def delete(self, user_id):
         try:
-            is_deleted = db.delete_realty(user_id)
+            is_deleted = db.delete_user(user_id)
             if is_deleted:
                 return {'message': f'User with id {user_id} deleted'}, 200
             else:
-                return {'message': f'User with id {user_id} not found'}, 404
+                return {'message': f'User with id {user_id} not found'}, 403
         except Exception as e:
             return {'message': str(e)}, 500
