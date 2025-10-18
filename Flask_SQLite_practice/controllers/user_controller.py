@@ -11,14 +11,21 @@ class Register(Resource):
         user = User.model_validate(request.json)
         db.register_user(user)
         return user.model_dump(), 201
+    
+
+@ns_user.route("/")
+class UserList(Resource):
+    @ns_user.expect(user_model)
+    def get(self):
+        users = db.get_all_users()
+        return [user.model_dump() for user in users], 200
 
 @ns_user.route("/login")
 class Login(Resource):
     @ns_user.expect(auth_model)
-    @ns_user.marshal_with(user_model)
     def post(self):
         data = request.json
-        user = User.get_by_email(data.get("email"))
+        user = db.get_by_email(data.get("email"))
         if user and user.password == User.hash_password(data.get("password")):
             return {"message": f"Welcome {user.name}"}
         return {"message": "Invalid credentials"}, 401
@@ -34,6 +41,7 @@ class UserList(Resource):
             ns_user.abort(404, f"User with id={user_id} not found")
 
     @ns_user.doc(responses={200: "No content"})
+    @ns_user.marshal_with(update_model)
     def put(self, user_id):
         user = User.model_validate(request.json)
         if user.id != user_id:
@@ -43,3 +51,14 @@ class UserList(Resource):
             return {}, 200
         except Exception:
             ns_user.abort(404, f"User not found")
+
+    @ns_user.marshal_with(user_model)
+    def delete(self, user_id):
+        try:
+            is_deleted = db.delete_realty(user_id)
+            if is_deleted:
+                return {'message': f'User with id {user_id} deleted'}, 200
+            else:
+                return {'message': f'User with id {user_id} not found'}, 404
+        except Exception as e:
+            return {'message': str(e)}, 500

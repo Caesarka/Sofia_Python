@@ -32,7 +32,6 @@ class ServerTests(unittest.TestCase):
         data = response.json()
         print("Data: ", data)
         print("Data type: ", type(data))
-        #found = any(payload["title"] == item.get("title") for item in data)
         found = payload["title"] == data.get("title")
         self.assertTrue(found, f"Response does not contain item with title {payload['title']}")
 
@@ -81,6 +80,7 @@ class ServerTests(unittest.TestCase):
         self.assertEqual(check_response["title"], "Updated title")
         self.assertEqual(check_response["price"], 44355)
 
+#user
     def test_post_get_user(self):
         url = f"{self.url}/api/user/register"
         payload = {
@@ -103,8 +103,48 @@ class ServerTests(unittest.TestCase):
         print("Data: ", data)
         print("Data type: ", type(data))
         found = payload["name"] == data.get("name")
-        #found = any(payload["email"] == item.get("email") for item in data)
         self.assertTrue(found, f"Response does not contain item with email {payload['email']}")
 
+    def test_login_user(self):
+        url = f"{self.url}/api/user/register"
+        payload_register = {
+           "name": "My name " + str(uuid.uuid4()),
+           "email": "myem" + str(uuid.uuid4()) + "ail@mail.com",
+           "password": "hetryi459865ruhyrkjt86",
+           "reg_date": "10.15.2025.11:00AM",
+           "role": "user",
+           "status": "active"
+        }
+        response_register = requests.post(url, json=payload_register)
+        data = response_register.json()
+        print("Data: ", data)
+        print("Email: ", data.get("email"))
+        print("Password: ", payload_register.get("password"))
+        payload_login = {
+            "email": data.get("email"),
+            "password": payload_register.get("password")
+        }
+        print("payload login:", payload_login)
+        response_login = requests.post(f"{self.url}/api/user/login", json=payload_login)
+        print("Response:", response_login.text)
+        self.assertEqual(response_login.status_code, 200)
+
+    def test_delete_user(self):
+            url = f"{self.url}/api/user/"
+            payload = {
+           "name": "My name " + str(uuid.uuid4()),
+           "email": "myem" + str(uuid.uuid4()) + "ail@mail.com",
+            "password": "hetryi459865ruhyrkjt86",
+            "reg_date": "10.15.2025.11:00AM",
+            "role": "user",
+            "status": "active"
+            }
+            response = requests.post(f"{url}/register", json=payload)
+
+            user_id = response.json()["id"]
+            print(user_id)
+            response = requests.delete(f"{url}/{user_id}")
+            self.assertEqual(response.status_code, 200)
+        
 if __name__ == '__main__':
     unittest.main()
