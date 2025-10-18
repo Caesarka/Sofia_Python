@@ -121,6 +121,8 @@ def delete_realty(realty_id: int):
 # user
 def register_user(user: User):
     db = get_db()
+    pw_hash = User.hash_password(user.password)
+    user.password = pw_hash
     try:
         cursor = db.cursor()
         cursor.execute(
@@ -129,6 +131,19 @@ def register_user(user: User):
         )
         user.id = cursor.lastrowid
         db.commit()
+    finally:
+        db.close()
+
+def get_by_email(email: str):
+    db = get_db()
+    try:
+        cursor = db.cursor()
+        cursor.execute("SELECT * FROM user WHERE email=?", (email,))
+        user = cursor.fetchone()
+        print(user)
+        if not user:
+            raise KeyError(f"User with email {email} not found")
+        return User.model_validate(dict(user))
     finally:
         db.close()
 

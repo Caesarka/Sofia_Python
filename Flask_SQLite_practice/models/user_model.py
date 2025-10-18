@@ -1,4 +1,5 @@
 from pydantic import BaseModel
+import hashlib
 
 class User(BaseModel):
     id: int | None = None
@@ -11,3 +12,7 @@ class User(BaseModel):
 
     class Config:
         orm_mode = True
+    
+    @staticmethod
+    def hash_password(password):
+        return hashlib.sha256(password.encode()).hexdigest()

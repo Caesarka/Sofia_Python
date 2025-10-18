@@ -91,6 +91,14 @@ class DatabaseTests(unittest.TestCase):
         self.assertEqual(new_user.email, user.email)
 
 
+    def test_get_user_by_email(self):
+        user = User(name="Julianna", email="my@mail.com", password="hetryi459865ruhyrkjt86", reg_date="10.15.2025.11:00AM", role="user", status="active")
+        db.register_user(user)
+        get_user = db.get_by_email(user.email)
+        self.assertEqual(get_user.email, user.email)
+        self.assertNotEqual(get_user, "wrong@email.com")
+
+
     def test_get_users(self):
         user = User(name="Julianna", email="my@mail.com", password="hetryi459865ruhyrkjt86", reg_date="10.15.2025.11:00AM", role="user", status="active")
         user1 = User(name="Dmitry", email="another@mail.com", password="trjtyjetyj56456756et", reg_date="10.16.2025.11:39AM", role="user", status="active")

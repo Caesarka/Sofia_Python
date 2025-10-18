@@ -13,7 +13,6 @@ user_model = ns_user.model("User", {
 })
 
 auth_model = ns_user.model("Auth", {
-    "name": fields.String(required=False),
     "email": fields.String(required=False),
     "password": fields.String(required=True),
 })
