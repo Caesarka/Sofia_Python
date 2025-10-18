@@ -143,7 +143,9 @@ class ServerTests(unittest.TestCase):
 
             user_id = response.json()["id"]
             print(user_id)
-            response = requests.delete(f"{url}/{user_id}")
+            print(type(user_id))
+            print(f"{url}{user_id}")
+            response = requests.delete(f"{url}{user_id}")
             self.assertEqual(response.status_code, 200)
         
 if __name__ == '__main__':
