@@ -10,7 +10,10 @@ class RealtyList(Resource):
     def get(self):
         realties = db.get_all_realties()
         return [r.model_dump() for r in realties], 200
-
+    
+@ns_realty.route("/")
+class RealtyList(Resource):
+    
     @ns_realty.expect(realty_model, validate=True)
     def post(self):
         realty = Realty.model_validate(request.json)

@@ -5,7 +5,7 @@ import unittest
 #from database.config import DB_PATH
 import db as db
 from models.realty_model import Realty
-from models.user_model import User
+from models.user_model import UserAuth, UserUpdate
 
 class DatabaseTests(unittest.TestCase):
 
@@ -83,7 +83,7 @@ class DatabaseTests(unittest.TestCase):
 
 #user
     def test_register_user(self):
-        user = User(name="Julianna", email="my@mail.com", password="hetryi459865ruhyrkjt86", reg_date="10.15.2025.11:00AM", role="user", status="active")
+        user = UserAuth(name="Julianna", email="my@mail.com", password="hetryi459865ruhyrkjt86", reg_date="10.15.2025.11:00AM", role="buyer", status="active")
         db.register_user(user)
         print(user.id)
         new_user = db.get_user(user.id)
@@ -92,7 +92,7 @@ class DatabaseTests(unittest.TestCase):
 
 
     def test_get_user_by_email(self):
-        user = User(name="Julianna", email="my@mail.com", password="hetryi459865ruhyrkjt86", reg_date="10.15.2025.11:00AM", role="user", status="active")
+        user = UserAuth(name="Julianna", email="my@mail.com", password="hetryi459865ruhyrkjt86", reg_date="10.15.2025.11:00AM", role="buyer", status="active")
         db.register_user(user)
         get_user = db.get_by_email(user.email)
         self.assertEqual(get_user.email, user.email)
@@ -100,8 +100,8 @@ class DatabaseTests(unittest.TestCase):
 
 
     def test_get_users(self):
-        user = User(name="Julianna", email="my@mail.com", password="hetryi459865ruhyrkjt86", reg_date="10.15.2025.11:00AM", role="user", status="active")
-        user1 = User(name="Dmitry", email="another@mail.com", password="trjtyjetyj56456756et", reg_date="10.16.2025.11:39AM", role="user", status="active")
+        user = UserAuth(name="Julianna", email="my@mail.com", password="hetryi459865ruhyrkjt86", reg_date="10.15.2025.11:00AM", role="buyer", status="active")
+        user1 = UserAuth(name="Dmitry", email="another@mail.com", password="trjtyjetyj56456756et", reg_date="10.16.2025.11:39AM", role="buyer", status="active")
         db.register_user(user)
         db.register_user(user1)
         users = db.get_all_users()
@@ -109,7 +109,7 @@ class DatabaseTests(unittest.TestCase):
 
 
     def test_delete_user(self):
-        user = User(name="Julianna", email="my@mail.com", password="hetryi459865ruhyrkjt86", reg_date="10.15.2025.11:00AM", role="user", status="active")
+        user = UserAuth(name="Julianna", email="my@mail.com", password="hetryi459865ruhyrkjt86", reg_date="10.15.2025.11:00AM", role="buyer", status="active")
         db.register_user(user)
         db.delete_user(user.id)
         inactive_user = db.get_user(user.id)
@@ -117,14 +117,15 @@ class DatabaseTests(unittest.TestCase):
 
 
     def test_update_user(self):
-        user = User(name="Julianna", email="my@mail.com", password="hetryi459865ruhyrkjt86", reg_date="10.15.2025.11:00AM", role="user", status="active")
+        user = UserAuth(name="Julianna", email="my@mail.com", password="hetryi459865ruhyrkjt86", reg_date="10.15.2025.11:00AM", role="buyer", status="active")
         db.register_user(user)
-        update_user = User(name="Julia", email="mew@mail.com", password="newpassword4353", reg_date=user.reg_date, role=user.role, status=user.status, id=user.id)
-        db.update_user(update_user)
-        new_user = db.get_user(update_user.id)
-        self.assertEqual(new_user, update_user)
+        update_user = UserUpdate(name="Julia", email="mew@mail.com", password="newpassword4353")
+        db.update_user(update_user, user.id)
+        new_user = db.get_user(user.id)
+        self.assertEqual(new_user.name, update_user.name)
+        self.assertEqual(new_user.email, update_user.email)
         update_user.name = "Anna"
-        self.assertNotEqual(new_user, update_user)
+        self.assertNotEqual(new_user.name, update_user.name)
 
 
 if __name__ == "__main__":
