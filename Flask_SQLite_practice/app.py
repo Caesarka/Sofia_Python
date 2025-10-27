@@ -10,6 +10,10 @@ init_db_if_needed()
 
 app = Flask(__name__, template_folder='views', static_folder='static')
 app.secret_key = "supersecret"
+
+
+
+
 api = Api(app, title="My API", doc="/doc/")
 
 api.add_namespace(ns_realty, path='/api/realty')

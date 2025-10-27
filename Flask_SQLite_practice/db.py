@@ -1,7 +1,7 @@
 import sqlite3
 from pathlib import Path
 from models.realty_model import Realty
-from models.user_model import User
+from models.user_model import UserAuth, UserUpdate
 
 BASE_DIR = Path(__file__).parent
 DB_PATH = BASE_DIR / "database.db"
@@ -119,9 +119,9 @@ def delete_realty(realty_id: int):
 
 
 # user
-def register_user(user: User):
+def register_user(user: UserAuth):
     db = get_db()
-    pw_hash = User.hash_password(user.password)
+    pw_hash = UserAuth.hash_password(user.password)
     user.password = pw_hash
     try:
         cursor = db.cursor()
@@ -131,6 +131,15 @@ def register_user(user: User):
         )
         user.id = cursor.lastrowid
         db.commit()
+    
+    except sqlite3.IntegrityError as e:
+        db.rollback()
+        raise ValueError(f"User with this email already exists: {e}")
+
+    except sqlite3.Error as e:
+        db.rollback()
+        raise RuntimeError(f"Database error: {e}")
+
     finally:
         db.close()
 
@@ -143,12 +152,12 @@ def get_by_email(email: str):
         print(user)
         if not user:
             raise KeyError(f"User with email {email} not found")
-        return User.model_validate(dict(user))
+        return UserAuth.model_validate(dict(user))
     finally:
         db.close()
 
 
-def get_user(user_id: int) -> User | None:
+def get_user(user_id: int) -> UserAuth | None:
     db = get_db()
     try:
         cur = db.cursor()
@@ -158,33 +167,36 @@ def get_user(user_id: int) -> User | None:
         print(type(user))
         if not user:
             raise KeyError(f"User with id {user_id} not found")
-        return User.model_validate(dict(user))
+        return UserAuth.model_validate(dict(user))
     finally:
         db.close()
 
 
-def get_all_users() -> list[User]:
+def get_all_users() -> list[UserAuth]:
     db = get_db()
     try:
         cur = db.cursor()
         cur.execute("SELECT * FROM user")
         rows = cur.fetchall()
-        return [User.model_validate(dict(row)) for row in rows]
+        return [UserAuth.model_validate(dict(row)) for row in rows]
     finally:
         db.close()
 
 
-def update_user(user: User):
-    if user.id <= 0 | user.id == None | type(user.id) != int:
+def update_user(user: UserUpdate, user_id) -> None:
+    if user_id <= 0 | user_id == None | type(user_id) != int:
         raise KeyError(f"User does not have id specified")
     db = get_db()
     try:
         cur = db.cursor()
-        cur.execute("UPDATE user SET name=?, email=?, password=? WHERE id=?", (user.name, user.email, user.password, user.id))
+        cur.execute("UPDATE user SET name=?, email=?, password=? WHERE id=?", (user.name, user.email, user.password, user_id))
         if cur.rowcount == 0:
-            raise KeyError(f"User with id {user.id} does not exist")
+            raise KeyError(f"User does not exist")
 
         db.commit()
+        return UserUpdate.model_validate(dict(user))
+    except Exception as e:
+        raise ValueError(f'Data conflict: {e}')
     finally:
         db.close()
 
