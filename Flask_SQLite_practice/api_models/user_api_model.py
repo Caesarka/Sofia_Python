@@ -1,4 +1,5 @@
-from flask_restx import Namespace, fields
+﻿from flask_restx import Namespace, fields
+
 
 ns_user = Namespace("user", description="Users")
 
@@ -7,7 +8,6 @@ user_model = ns_user.model("User", {
     "name": fields.String,
     "email": fields.String,
     "password": fields.String,
-    "reg_date": fields.String,
     "role": fields.String,
     "status": fields.String,
 })

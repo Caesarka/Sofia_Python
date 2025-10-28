@@ -1,4 +1,5 @@
-from pydantic import BaseModel
+﻿from pydantic import BaseModel, Field
+from datetime import datetime
 import hashlib
 
 class User(BaseModel):
@@ -6,7 +7,7 @@ class User(BaseModel):
     name: str
     email: str
     password: str
-    reg_date: str
+    reg_date: str = Field(default_factory=lambda: datetime.now().isoformat(timespec="seconds"))
     role: str
     status: str
 
