@@ -1,3 +1,15 @@
+## Comands ##
+python -m venv .venv
+      ----Linux----       |     ----Windows-----
+source .venv/bin/activate | .\.venv\Scripts\activate
+pip install -r requirements.txt
+pip freeze > requirements.txt
+
+docker compose down
+docker compose build
+docker compose run --rm acceptance-tests
+
+
 ### 0. Собрать структуру проеткта на бэкенд (входной файл, папки, бд), развернуть это внутри вирт. откружения
 
 ## 1. Сделать базовые endponts, которые будут выдавать через API данные об объектах недвижимости из БД:
@@ -71,4 +83,37 @@ ____
     * Добавлять по роли
     * Редактировать также по роли
 4. Сделать удалени объекта, согласно логике
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
