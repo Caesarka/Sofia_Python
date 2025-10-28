@@ -1,4 +1,5 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
+from datetime import datetime
 import hashlib
 from enum import Enum
 
@@ -12,7 +13,7 @@ class UserAuth(BaseModel):
     name: str
     email: str
     password: str
-    reg_date: str
+    reg_date: str = Field(default_factory=lambda: datetime.now().isoformat(timespec="seconds"))
     role: UserRole = UserRole.BUYER
     status: str
 
