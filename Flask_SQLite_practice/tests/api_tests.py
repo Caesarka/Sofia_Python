@@ -25,7 +25,6 @@ class ServerTests(unittest.TestCase):
            "name": "My name " + str(uuid.uuid4()),
            "email": "myem" + str(uuid.uuid4()) + "ail@mail.com",
            "password": "hetryi459865ruhyrkjt86",
-           "reg_date": "10.15.2025.11:00AM",
            "role": role,
            "status": "active"
         }

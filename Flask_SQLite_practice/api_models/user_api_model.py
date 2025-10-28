@@ -1,6 +1,7 @@
 from flask_restx import Namespace, fields
 from models.user_model import UserRole
 
+
 ns_user = Namespace("user", description="Users")
 
 user_model = ns_user.model("User", {
@@ -8,7 +9,6 @@ user_model = ns_user.model("User", {
     "name": fields.String,
     "email": fields.String,
     "password": fields.String,
-    "reg_date": fields.String,
     "role": fields.String(enum=[role.value for role in UserRole]),
     "status": fields.String
 })
