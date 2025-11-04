@@ -1,10 +1,11 @@
+from datetime import datetime
 import os
 import tempfile
 import unittest
 
 #from database.config import DB_PATH
 import db as db
-from models.realty_model import Realty
+from models.realty_model import Realty, RealtyUpdate
 from models.user_model import UserAuth, UserUpdate
 
 class DatabaseTests(unittest.TestCase):
@@ -36,7 +37,7 @@ class DatabaseTests(unittest.TestCase):
 
 # realty
     def test_create_realty(self):
-        realty = Realty(title="Koshkin dom", price=1000, city="Katcity", address="Tree street", image="some_image")
+        realty = Realty(title="Koshkin dom", price=1000, city="Katcity", address="Tree street", image="some_image", created_at="", status=1, user_id=1)
         db.create_realty(realty)
         print(realty.id)
         new_realty = db.get_realty(realty.id)
@@ -45,7 +46,7 @@ class DatabaseTests(unittest.TestCase):
 
 
     def test_get_realties(self):
-        realty = Realty(title="Koshkin dom", price=1000, city="Katcity", address="Tree street", image="some_image")
+        realty = Realty(title="Koshkin dom", price=1000, city="Katcity", address="Tree street", image="some_image", created_at="", status=1, user_id=1)
         db.create_realty(realty)
         realties = db.get_all_realties()
         self.assertEqual(len(realties), 1)
@@ -63,7 +64,7 @@ class DatabaseTests(unittest.TestCase):
 
 
     def test_delete_realty(self):
-        realty = Realty(title="Koshkin dom", price=1000, city="Katcity", address="Tree street", image="some_image")
+        realty = Realty(title="Koshkin dom", price=1000, city="Katcity", address="Tree street", image="some_image", created_at="", status=1, user_id=1)
         db.create_realty(realty)
         result = db.delete_realty(realty.id)
         self.assertTrue(result)
@@ -72,12 +73,12 @@ class DatabaseTests(unittest.TestCase):
 
 
     def test_update_realty(self):
-        realty = Realty(title="Koshkin dom", price=1000, city="Katcity", address="Tree street", image="some_image")
+        realty = Realty(title="Koshkin dom", price=1000, city="Katcity", address="Tree street", image="some_image", created_at="", status=1, user_id=1)
         db.create_realty(realty)
-        update_realty = Realty(title="Mishkin dom", price=1000, city="Katcity", address="Tree street", image="some_image", id=realty.id)
-        db.update_realty(update_realty)
+        update_realty = RealtyUpdate(title="Mishkin dom", price=1000, city="Katcity", address="Tree street", image="some_image", id=realty.id)
+        db.update_realty(update_realty, realty.user_id)
         new_realty = db.get_realty(update_realty.id)
-        self.assertEqual(new_realty, update_realty)
+        self.assertEqual(new_realty.title, update_realty.title)
         update_realty.title = "aeraherh"
         self.assertNotEqual(new_realty, update_realty)
 

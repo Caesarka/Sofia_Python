@@ -14,7 +14,11 @@ CREATE TABLE IF NOT EXISTS realty (
   price INTEGER NOT NULL,
   city TEXT NOT NULL,
   image TEXT,
-  address TEXT NOT NULL
+  address TEXT NOT NULL,
+  created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+  status INT DEFAULT 0,
+  user_id INTEGER NOT NULL,
+  FOREIGN KEY (user_id) REFERENCES user(id)
 );
 
 CREATE TABLE IF NOT EXISTS user (
@@ -56,13 +60,14 @@ def create_realty(realty: Realty):
     try:
         cursor = db.cursor()
         cursor.execute(
-            "INSERT INTO realty (title, price, city, address, image) VALUES (?, ?, ?, ?, ?)",
-            (realty.title, realty.price, realty.city, realty.address, realty.image)
+            "INSERT INTO realty (title, price, city, address, image, created_at, status, user_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+            (realty.title, realty.price, realty.city, realty.address, realty.image, realty.created_at, realty.status, realty.user_id)
         )
         realty.id = cursor.lastrowid
         db.commit()
     finally:
         db.close()
+    return realty
 
 
 def get_realty(realty_id: int) -> Realty | None:
@@ -91,16 +96,21 @@ def get_all_realties() -> list[Realty]:
         db.close()
 
 
-def update_realty(realty: Realty):
+def update_realty(realty: Realty, current_user_id: int):
     if realty.id <= 0 | realty.id == None | type(realty.id) != int:
         raise KeyError(f"Realty does not have id specified")
     db = get_db()
     try:
         cur = db.cursor()
-        cur.execute("UPDATE realty SET title=?, price=?, city=?, address=?, image=? WHERE id=? ", (realty.title, realty.price, realty.city, realty.address, realty.image, realty.id))
-        if cur.rowcount == 0:
+        cur.execute("SELECT user_id FROM realty WHERE id=?", (realty.id,))
+        row = cur.fetchone()
+        if row is None:
             raise KeyError(f"Realty with id {realty.id} does not exist")
-
+        owner_id = row[0]
+        if owner_id != current_user_id:
+            raise PermissionError("You are not authorized to update this realty")
+        
+        cur.execute("UPDATE realty SET title=?, price=?, city=?, address=?, image=? WHERE id=? ", (realty.title, realty.price, realty.city, realty.address, realty.image, realty.id))
         db.commit()
     finally:
         db.close()
