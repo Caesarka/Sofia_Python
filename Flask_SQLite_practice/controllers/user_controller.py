@@ -1,6 +1,6 @@
 ﻿from sqlite3 import IntegrityError
 from flask_restx import Resource
-from flask import request, make_response
+from flask import jsonify, request, make_response
 from models.user_model import UserAuth, UserUpdate, UserRole
 from api_models.user_api_model import ns_user, user_model, auth_model, update_model
 import db
@@ -60,6 +60,15 @@ class Login(Resource):
             #return {"access token": access_token}, 200
         return {"message": "Invalid credentials"}, 401
 
+
+@ns_user.route("/logout")
+class Logout(Resource):
+    @jwt_required
+    def post(self):
+        resp = make_response(jsonify({"message": "Logged out successfully"}, 200))
+        resp.set_cookie("access_token", "", expires=0, httponly=True, samesite="Strict")
+        return resp
+    
 
 @ns_user.route("/<int:user_id>")
 class UserList(Resource):

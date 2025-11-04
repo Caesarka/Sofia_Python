@@ -40,7 +40,47 @@ class ServerTests(unittest.TestCase):
     def setUp(self):
         self.url = os.getenv("TARGET_URL", "http://localhost:5000/")
 
+
     def test_post_get_realty(self):
+        self.login_realtor()
+        resp = self.session.get(f"{self.url}api/user/profile").json()
+        print("Get profile:", resp)
+
+        guid = uuid.uuid4()
+        url = f"{self.url}api/realty"
+        payload = {
+           "title": "My title " + str(guid),
+           "price": 1,
+           "city": "My city",
+           "address": "address",
+           "image": "image",
+           "user_id": resp["id"]
+        }
+
+        response = self.session.post(url, json=payload)
+        print("POST Response:", response.json())
+        print("Status:", response.status_code)
+        self.assertEqual(response.status_code, 201)
+
+        data_post = response.json()
+        self.assertIn("id", data_post, "Response JSON does not contain 'id' field")
+
+        realty_id = data_post["id"]
+        response = self.session.get(f"{url}/{realty_id}")
+        print("GET Response: ", response.text)
+        self.assertEqual(response.status_code, 200)
+
+        data = response.json()
+        print("Data: ", data)
+
+        self.assertEqual(payload["title"], data.get("title"), f"Expected title '{payload['title']}', got '{data.get('title')}'")
+
+
+    def test_delete_realty(self):
+        self.login_realtor()
+        resp = self.session.get(f"{self.url}/api/user/profile").json()
+        print("Get profile:", resp)
+
         guid = uuid.uuid4()
         url = f"{self.url}/api/realty/"
         payload = {
@@ -49,51 +89,38 @@ class ServerTests(unittest.TestCase):
            "city": "My city",
            "address": "address",
            "image": "image",
+           "user_id": resp["id"]
         }
-        response = requests.post(url, json=payload)
-        print("Response:", response.json())
-        print(type(response))
-        print("Status:", response.status_code)
-        self.assertEqual(response.status_code, 201)
 
-        response = requests.get(f"{url}/{response.json()["id"]}")
-        print("Response: ", response.text)
-        self.assertEqual(response.status_code, 200)
-        data = response.json()
-        print("Data: ", data)
-        print("Data type: ", type(data))
-        found = payload["title"] == data.get("title")
-        self.assertTrue(found, f"Response does not contain item with title {payload['title']}")
+        response = self.session.post(url, json=payload)
 
-    def test_delete_realty(self):
-        url = f"{self.url}/api/realty/"
-        payload = {
-           "title": "My new realty",
-           "price": 1000000,
-           "city": "Toronto",
-           "address": "address",
-           "image": "image",
-        }
-        response = requests.post(url, json=payload)
+        data_post = response.json()
+        realty_id = data_post["id"]
 
-        realty_id = response.json()["id"]
-        print(realty_id)
-        response = requests.delete(f"{url}{realty_id}")
+        response = self.session.delete(f"{url}{realty_id}")
         self.assertEqual(response.status_code, 200)
     
     def test_update_realty(self):
+        self.login_realtor()
+        resp = self.session.get(f"{self.url}/api/user/profile").json()
+        print("Get profile:", resp)
+
+        guid = uuid.uuid4()
         url = f"{self.url}/api/realty/"
-        payload_post = {
-           "title": "My new realty",
-           "price": 1000000,
-           "city": "Toronto",
+        payload = {
+           "title": "My title " + str(guid),
+           "price": 1,
+           "city": "My city",
            "address": "address",
            "image": "image",
+           "user_id": resp["id"]
         }
-        response = requests.post(url, json=payload_post)
+
+        response = self.session.post(url, json=payload)
         self.assertEqual(response.status_code, 201)
-        realty_id = response.json().get("id")
-        self.assertIsNotNone(realty_id)
+
+        data_post = response.json()
+        realty_id = data_post["id"]
 
         payload_update = {
            "id": realty_id,
@@ -103,9 +130,9 @@ class ServerTests(unittest.TestCase):
            "address": "New address",
            "image": "image",
         }
-        response_update = requests.put(f"{url}{realty_id}", json=payload_update)
+        response_update = self.session.put(f"{url}{realty_id}", json=payload_update)
         self.assertEqual(response_update.status_code, 200, f"{response_update.json()}")
-        check_response = requests.get(f"{url}{realty_id}").json()
+        check_response = self.session.get(f"{url}{realty_id}").json()
         print(f"Updated data: {check_response}")
         self.assertEqual(check_response["title"], "Updated title")
         self.assertEqual(check_response["price"], 44355)
@@ -138,6 +165,11 @@ class ServerTests(unittest.TestCase):
         print("Get profile:", resp)
         self.assertTrue(len(resp["name"]) > 5)
 
+    def test_logout_user(self):
+        self.login_buyer()
+        response = self.session.post(f"{self.url}/api/user/logout")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 200)
 
     def test_delete_user(self):
         self.login_buyer()

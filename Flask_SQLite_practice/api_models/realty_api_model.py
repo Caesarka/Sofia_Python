@@ -8,5 +8,5 @@ realty_model = ns_realty.model("Realty", {
     "price": fields.Integer(required=True, description="Price"),
     "city":  fields.String(required=True, description="City"),
     "address":  fields.String(required=True, description="Address"),
-    "image": fields.String(required=False),
+    "image": fields.String(required=False)
 })
