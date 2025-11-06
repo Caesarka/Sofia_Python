@@ -3,6 +3,8 @@ import requests
 import uuid
 import os
 
+from models.realty_model import RealtyPatch
+
 
 
 class ServerTests(unittest.TestCase):
@@ -100,7 +102,7 @@ class ServerTests(unittest.TestCase):
         response = self.session.delete(f"{url}{realty_id}")
         self.assertEqual(response.status_code, 200)
     
-    def test_update_realty(self):
+    def test_replace_realty(self):
         self.login_realtor()
         resp = self.session.get(f"{self.url}/api/user/profile").json()
         print("Get profile:", resp)
@@ -122,16 +124,46 @@ class ServerTests(unittest.TestCase):
         data_post = response.json()
         realty_id = data_post["id"]
 
-        payload_update = {
-           "id": realty_id,
-           "title": "Updated title",
-           "price": 44355,
-           "city": "New city",
-           "address": "New address",
+        payload["id"] = realty_id
+        payload["title"] = "Updated title"
+        payload["price"] = 44355
+
+        response_replace = self.session.put(f"{url}{realty_id}", json=payload)
+        print(response_replace)
+        self.assertEqual(response_replace.status_code, 200, f"{response_replace.json()}")
+        check_response = self.session.get(f"{url}{realty_id}").json()
+        print(f"Updated data: {check_response}")
+        self.assertEqual(check_response["title"], "Updated title")
+        self.assertEqual(check_response["price"], 44355)
+
+    def test_patch_realty(self):
+        self.login_realtor()
+        resp = self.session.get(f"{self.url}/api/user/profile").json()
+        print("Get profile:", resp)
+
+        guid = uuid.uuid4()
+        url = f"{self.url}/api/realty/"
+        payload = {
+           "title": "My title " + str(guid),
+           "price": 1,
+           "city": "My city",
+           "address": "address",
            "image": "image",
+           "user_id": resp["id"]
         }
-        response_update = self.session.put(f"{url}{realty_id}", json=payload_update)
-        self.assertEqual(response_update.status_code, 200, f"{response_update.json()}")
+
+        response = self.session.post(url, json=payload)
+        self.assertEqual(response.status_code, 201)
+
+        data_post = response.json()
+        realty_id = data_post["id"]
+
+        realty_patch = RealtyPatch(title="Updated title", price=44355).model_dump()
+        print(realty_patch)
+
+        response_replace = self.session.patch(f"{url}{realty_id}", json=realty_patch)
+        print(response_replace)
+        self.assertEqual(response_replace.status_code, 200, f"{response_replace.json}")
         check_response = self.session.get(f"{url}{realty_id}").json()
         print(f"Updated data: {check_response}")
         self.assertEqual(check_response["title"], "Updated title")

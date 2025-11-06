@@ -1,6 +1,6 @@
 import sqlite3
 from pathlib import Path
-from models.realty_model import Realty
+from models.realty_model import Realty, RealtyPatch
 from models.user_model import UserAuth, UserUpdate
 
 BASE_DIR = Path(__file__).parent
@@ -18,6 +18,7 @@ CREATE TABLE IF NOT EXISTS realty (
   created_at TEXT DEFAULT CURRENT_TIMESTAMP,
   status INT DEFAULT 0,
   user_id INTEGER NOT NULL,
+  is_deleted INT DEFAULT 0,
   FOREIGN KEY (user_id) REFERENCES user(id)
 );
 
@@ -70,11 +71,11 @@ def create_realty(realty: Realty):
     return realty
 
 
-def get_realty(realty_id: int) -> Realty | None:
+def get_realty(realty_id: int, filter: str = '') -> Realty | None:
     db = get_db()
     try:
         cur = db.cursor()
-        cur.execute("SELECT * FROM realty WHERE id=?", (realty_id,))
+        cur.execute(f"SELECT * FROM realty WHERE id=? {filter}", (realty_id,))
         realty = cur.fetchone()
         print(realty)
         print(type(realty))
@@ -96,21 +97,32 @@ def get_all_realties() -> list[Realty]:
         db.close()
 
 
-def update_realty(realty: Realty, current_user_id: int):
-    if realty.id <= 0 | realty.id == None | type(realty.id) != int:
-        raise KeyError(f"Realty does not have id specified")
+def replace_realty(realty: Realty, realty_id: int):
+    update_data = realty.model_dump()
+    if not update_data:
+        return
     db = get_db()
     try:
         cur = db.cursor()
-        cur.execute("SELECT user_id FROM realty WHERE id=?", (realty.id,))
-        row = cur.fetchone()
-        if row is None:
-            raise KeyError(f"Realty with id {realty.id} does not exist")
-        owner_id = row[0]
-        if owner_id != current_user_id:
-            raise PermissionError("You are not authorized to update this realty")
-        
-        cur.execute("UPDATE realty SET title=?, price=?, city=?, address=?, image=? WHERE id=? ", (realty.title, realty.price, realty.city, realty.address, realty.image, realty.id))
+        set_clause = ", ".join(f"{key}=?" for key in update_data.keys())
+        values = list(update_data.values())
+        values.append(realty_id)
+        cur.execute(f"UPDATE realty SET {set_clause} WHERE id=?", values)
+        db.commit()
+    finally:
+        db.close()
+
+def patch_realty(realty: RealtyPatch, realty_id: int):
+    update_data = realty.model_dump(exclude_none=True)
+    if not update_data:
+        return
+    db = get_db()
+    try:
+        cur = db.cursor()
+        set_clause = ", ".join(f"{key}=?" for key in update_data.keys())
+        values = list(update_data.values())
+        values.append(realty_id)
+        cur.execute(f"UPDATE realty SET {set_clause} WHERE id=?", values)
         db.commit()
     finally:
         db.close()
@@ -127,6 +139,15 @@ def delete_realty(realty_id: int):
         db.close()
 
 
+#def publish_realty(realty: Realty):
+#    db = get_db()
+#    
+#    try:
+#        cur = db.cursor()
+#        cur.execute("UPDATE realty SET status=1, created_at=?", (realty.created_at,))
+#        db.commit()
+#    finally:
+#        db.close()
 
 # user
 def register_user(user: UserAuth):
