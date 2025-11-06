@@ -1,8 +1,9 @@
 from flask_restx import Resource
 from flask import jsonify, request
-from models.realty_model import Realty, RealtyUpdate
+from models.realty_model import Realty, RealtyPatch
 from api_models.realty_api_model import ns_realty, realty_model
 from auth.jwt_utils import jwt_required
+from auth.role_utils import role_required
 from auth.utils import decode_access_token
 from pydantic import ValidationError
 import db
@@ -17,6 +18,7 @@ class RealtyList(Resource):
         return [r.model_dump() for r in realties], 200
     
     @jwt_required
+    @role_required(['realtor', 'admin'])
     @ns_realty.expect(realty_model, validate=True)
     @ns_realty.marshal_with(realty_model)
     def post(self):
@@ -43,18 +45,27 @@ class RealtyItem(Resource):
             ns_realty.abort(404, f"Realty with id={realty_id} not found")
 
     @jwt_required
+    @role_required(['realtor', 'admin'])
     @ns_realty.expect(realty_model)
     @ns_realty.doc(responses={200: "Updated"})
     def put(self, realty_id):
         user_id = request.user["user_id"]
-        realty = RealtyUpdate.model_validate(request.json)
-        if realty.id != realty_id:
-            ns_realty.abort(400, f"Realty id does not match")
+        realty = Realty.model_validate(request.json)
+        if realty.user_id != user_id:
+            ns_realty.abort(403, "You are not authorized to modify this realty listing.")
+            
         try:
-            db.update_realty(realty, user_id)
+            db.replace_realty(realty, realty_id)
             return {"message": "Updated"}, 200
         except Exception:
             ns_realty.abort(404, f"Realty with id={realty_id} not found")
+
+    @jwt_required
+    @role_required(['realtor', 'admin'])
+    @ns_realty.doc(responses={200: "Updated"})
+    def patch(self, realty_id):
+        realty = RealtyPatch.model_validate(request.json)
+        db.patch_realty(realty, realty_id)
 
     @jwt_required
     def delete(self, realty_id):
@@ -75,3 +86,15 @@ class RealtyItem(Resource):
         else:
             print("You do not have permission for deleting this realty")
         
+@ns_realty.route("/<int:realty_id>/publish")
+class RealtyPublish(Resource):
+    @jwt_required
+    @role_required(['admin'])
+    def patch(self, realty_id):
+        try:
+            realty = db.get_realty(realty_id, filter = 'AND is_deleted = 0')
+        except Exception:
+            ns_realty.abort(404, f"Realty with id={realty_id} not found")
+
+        #db.publish_realty(realty)
+        db.patch_realty(RealtyPatch(status=1))
