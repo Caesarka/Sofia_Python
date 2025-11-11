@@ -1,4 +1,4 @@
-import os
+﻿import os
 import tempfile
 import unittest
 
@@ -80,6 +80,30 @@ class DatabaseTests(unittest.TestCase):
         self.assertEqual(new_realty, update_realty)
         update_realty.title = "aeraherh"
         self.assertNotEqual(new_realty, update_realty)
+
+        realty.title = "Mishkin dom"
+        realty.price = 1001
+        db.replace_realty(realty, realty.id)
+        replaced_realty = db.get_realty(realty.id)
+        self.assertEqual(replaced_realty.title, "Mishkin dom")
+        self.assertEqual(replaced_realty.price, 1001)
+
+    def test_patch_realty(self):
+        realty = Realty(title="Koshkin dom", price=1000, city="Katcity", address="Tree street", image="some_image", created_at="", status=1, user_id=1)
+        db.create_realty(realty)
+
+        patch_realty = RealtyPatch(title="Mishkin dom", price=1001, city="Katcity", address="Tree street", image="some_image")
+        db.patch_realty(patch_realty, realty.id)
+        patched_realty = db.get_realty(realty.id)
+        self.assertEqual(patched_realty.title, patch_realty.title)
+        self.assertEqual(patched_realty.price, patch_realty.price)
+
+        self.assertNotEqual(patched_realty, patch_realty)
+
+        update_field = RealtyPatch(title="New dom")
+        db.patch_realty(update_field, realty.id)
+        new_field_realty = db.get_realty(patched_realty.id)
+        self.assertEqual(new_field_realty.title, update_field.title)
 
 #user
     def test_register_user(self):

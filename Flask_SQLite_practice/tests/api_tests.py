@@ -110,6 +110,16 @@ class ServerTests(unittest.TestCase):
         self.assertEqual(check_response["title"], "Updated title")
         self.assertEqual(check_response["price"], 44355)
 
+        self.login_admin()
+        #resp = self.session.get(f"{self.url}/{realty_id}/publish").json()
+        realty_patch = RealtyPatch().model_dump()
+        print(realty_patch)
+        response_publish = self.session.patch(f"{url}{realty_id}/publish", json=realty_patch)
+        print(response_publish)
+        self.assertEqual(response_publish.status_code, 200, f"{response_publish.json}")
+
+
+
 #user
     def test_update_user(self):
         
@@ -128,8 +138,6 @@ class ServerTests(unittest.TestCase):
         self.assertEqual(resp.status_code, 200)
         data = resp.json()
         print("Data: ", data)
-
-
 
 
     def test_login_user(self):
