@@ -1,13 +1,11 @@
 from flask_restx import Resource
-from flask import jsonify, request
+from flask import request
 from models.realty_model import Realty, RealtyPatch
 from api_models.realty_api_model import ns_realty, realty_model
 from auth.jwt_utils import jwt_required
 from auth.role_utils import role_required
-from auth.utils import decode_access_token
 from pydantic import ValidationError
 import db
-from datetime import datetime
 
 
 @ns_realty.route("/")
@@ -33,6 +31,7 @@ class RealtyList(Resource):
 
         new_realty = db.create_realty(realty)
         return new_realty.model_dump(), 201
+
 
 @ns_realty.route("/<int:realty_id>")
 class RealtyItem(Resource):
@@ -65,6 +64,12 @@ class RealtyItem(Resource):
     @ns_realty.doc(responses={200: "Updated"})
     def patch(self, realty_id):
         realty = RealtyPatch.model_validate(request.json)
+        update_data = realty.model_dump(exclude_unset=True, exclude_none=True)
+        print(realty)
+        user_role = request.user.get("role")
+        print(user_role)
+        if "status" in update_data and user_role == 'realtor':
+            ns_realty.abort(403, "You are not authorized to change the publish status.")
         db.patch_realty(realty, realty_id)
 
     @jwt_required
@@ -85,7 +90,8 @@ class RealtyItem(Resource):
                 return {'message': str(e)}, 500
         else:
             print("You do not have permission for deleting this realty")
-        
+
+
 @ns_realty.route("/<int:realty_id>/publish")
 class RealtyPublish(Resource):
     @jwt_required
@@ -96,5 +102,4 @@ class RealtyPublish(Resource):
         except Exception:
             ns_realty.abort(404, f"Realty with id={realty_id} not found")
 
-        #db.publish_realty(realty)
-        db.patch_realty(RealtyPatch(status=1))
+        db.patch_realty(RealtyPatch(status=1), realty_id)

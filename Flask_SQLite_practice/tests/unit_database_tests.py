@@ -93,7 +93,6 @@ class DatabaseTests(unittest.TestCase):
         self.assertEqual(patched_realty.title, patch_realty.title)
         self.assertEqual(patched_realty.price, patch_realty.price)
 
-        #update_realty.title = "aeraherh"
         self.assertNotEqual(patched_realty, patch_realty)
 
         update_field = RealtyPatch(title="New dom")
