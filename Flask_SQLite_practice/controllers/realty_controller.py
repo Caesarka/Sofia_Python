@@ -1,6 +1,7 @@
+﻿from datetime import datetime
 from flask_restx import Resource
 from flask import request
-from models.realty_model import Realty, RealtyPatch
+from schemas.realty_model import Realty, RealtyPatch
 from api_models.realty_api_model import ns_realty, realty_model
 from auth.jwt_utils import jwt_required
 from auth.role_utils import role_required
@@ -10,9 +11,23 @@ import db
 
 @ns_realty.route("/")
 class RealtyList(Resource):
+    @jwt_required
+    @role_required(['realtor', 'admin', 'buyer'])
     @ns_realty.marshal_list_with(realty_model)
     def get(self):
-        realties = db.get_all_realties()
+        user = request.user
+        user_id = user["user_id"]
+        user_role = user["role"]
+
+        if user_role == 'buyer':
+            realties = db.get_all_active_realties()
+
+        elif user_role == 'realtor':
+            realties = db.get_all_realties_realtor(user_id)
+
+        else:
+            realties = db.get_all_realties()
+
         return [r.model_dump() for r in realties], 200
     
     @jwt_required
@@ -47,17 +62,20 @@ class RealtyItem(Resource):
     @role_required(['realtor', 'admin'])
     @ns_realty.expect(realty_model)
     @ns_realty.doc(responses={200: "Updated"})
+    # !! doesn't work as expected !! Lost realty model fields that came epmty !! Use patch instead
     def put(self, realty_id):
         user_id = request.user["user_id"]
+        #request.json["user_id"] = user_id
         realty = Realty.model_validate(request.json)
         if realty.user_id != user_id:
             ns_realty.abort(403, "You are not authorized to modify this realty listing.")
             
-        try:
-            db.replace_realty(realty, realty_id)
-            return {"message": "Updated"}, 200
-        except Exception:
-            ns_realty.abort(404, f"Realty with id={realty_id} not found")
+        #try:
+        db.replace_realty(realty, realty_id)
+        return {"message": "Updated"}, 200
+        #except Exception as ex:
+            #ns_realty.abort(404, f"Realty with id={realty_id} not found. Ex: {ex}")
+            #raise ex
 
     @jwt_required
     @role_required(['realtor', 'admin'])
@@ -73,23 +91,32 @@ class RealtyItem(Resource):
         db.patch_realty(realty, realty_id)
 
     @jwt_required
+    @role_required(['realtor', 'admin'])
     def delete(self, realty_id):
         try:
             realty = db.get_realty(realty_id)
         except Exception:
             ns_realty.abort(404, f"Realty with id={realty_id} not found")
-        user_id = request.user["user_id"]
-        if user_id == realty.user_id:
-            try:
-                is_deleted = db.delete_realty(realty_id)
-                if is_deleted:
-                    return {'message': f'Task {realty_id} deleted'}, 200
-                else:
-                    return {'message': f'Task {realty_id} not found'}, 404
-            except Exception as e:
-                return {'message': str(e)}, 500
-        else:
+        user = request.user
+        user_id = user["user_id"]
+        user_role = user["role"]
+        can_delete = (
+            user_role == "admin" or
+            (realty.user_id == user_id and realty.published_at is None)
+
+        )
+        if not can_delete:
             print("You do not have permission for deleting this realty")
+
+        try:
+            is_deleted = db.delete_realty(realty_id)
+            if is_deleted:
+                return {'message': f'Task {realty_id} deleted'}, 200
+            else:
+                return {'message': f'Task {realty_id} not found'}, 404
+        except Exception as e:
+            return {'message': str(e)}, 500
+
 
 
 @ns_realty.route("/<int:realty_id>/publish")
@@ -102,4 +129,6 @@ class RealtyPublish(Resource):
         except Exception:
             ns_realty.abort(404, f"Realty with id={realty_id} not found")
 
-        db.patch_realty(RealtyPatch(status=1), realty_id)
+        now = datetime.now().isoformat(timespec='seconds')
+        patch_data = RealtyPatch(status=1, published_at=now)
+        db.patch_realty(patch_data, realty_id)

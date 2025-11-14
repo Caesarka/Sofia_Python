@@ -1,7 +1,7 @@
 ﻿from sqlite3 import IntegrityError
 from flask_restx import Resource
 from flask import jsonify, request, make_response
-from models.user_model import UserAuth, UserUpdate, UserRole
+from schemas.user_model import UserAuth, UserUpdate, UserRole
 from api_models.user_api_model import ns_user, user_model, auth_model, update_model
 import db
 from auth.utils import create_access_token

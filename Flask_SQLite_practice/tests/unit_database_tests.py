@@ -5,8 +5,8 @@ import unittest
 
 #from database.config import DB_PATH
 import db as db
-from models.realty_model import Realty, RealtyPatch
-from models.user_model import UserAuth, UserUpdate
+from schemas.realty_model import Realty, RealtyPatch
+from schemas.user_model import UserAuth, UserUpdate
 
 class DatabaseTests(unittest.TestCase):
 
