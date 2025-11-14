@@ -1,5 +1,5 @@
 from flask_restx import Namespace, fields
-from models.user_model import UserRole
+from schemas.user_model import UserRole
 
 
 ns_user = Namespace("user", description="Users")

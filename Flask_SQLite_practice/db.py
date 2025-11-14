@@ -1,7 +1,7 @@
 import sqlite3
 from pathlib import Path
-from models.realty_model import Realty, RealtyPatch
-from models.user_model import UserAuth, UserUpdate
+from schemas.realty_model import Realty, RealtyPatch
+from schemas.user_model import UserAuth, UserUpdate
 
 BASE_DIR = Path(__file__).parent
 DB_PATH = BASE_DIR / "database.db"
@@ -15,7 +15,8 @@ CREATE TABLE IF NOT EXISTS realty (
   city TEXT NOT NULL,
   image TEXT,
   address TEXT NOT NULL,
-  created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+  created_at TEXT,
+  published_at TEXT,
   status INT DEFAULT 0,
   user_id INTEGER NOT NULL,
   is_deleted INT DEFAULT 0,
@@ -97,17 +98,42 @@ def get_all_realties() -> list[Realty]:
         db.close()
 
 
+def get_all_active_realties() -> list[Realty]:
+    db = get_db()
+    try:
+        cur = db.cursor()
+        cur.execute("SELECT * FROM realty WHERE status=1")
+        rows = cur.fetchall()
+        return [Realty.model_validate(dict(row)) for row in rows]
+    finally:
+        db.close()
+
+
+def get_all_realties_realtor(user_id) -> list[Realty]:
+    db = get_db()
+    try:
+        cur = db.cursor()
+        cur.execute("SELECT * FROM realty WHERE status=1 OR user_id=?", (user_id,))
+        rows = cur.fetchall()
+        return [Realty.model_validate(dict(row)) for row in rows]
+    finally:
+        db.close()
+
+
+
 def replace_realty(realty: Realty, realty_id: int):
     update_data = realty.model_dump()
     if not update_data:
         return
     db = get_db()
     try:
+        update_data["id"] = realty_id
         cur = db.cursor()
         set_clause = ", ".join(f"{key}=?" for key in update_data.keys())
         values = list(update_data.values())
-        values.append(realty_id)
-        cur.execute(f"UPDATE realty SET {set_clause} WHERE id=?", values)
+        #values["realty_id"] = realty_id
+        #values.append(realty_id)
+        cur.execute(f"UPDATE realty SET {set_clause} WHERE id={realty_id}", values)
         db.commit()
     finally:
         db.close()

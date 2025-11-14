@@ -3,7 +3,7 @@ import requests
 import uuid
 import os
 
-from models.realty_model import RealtyPatch
+from schemas.realty_model import RealtyPatch
 
 
 
@@ -76,6 +76,48 @@ class ServerTests(unittest.TestCase):
         print("Data: ", data)
 
         self.assertEqual(payload["title"], data.get("title"), f"Expected title '{payload['title']}', got '{data.get('title')}'")
+
+
+    def test_post_get_realty_buyer(self):
+        self.login_realtor()
+        resp = self.session.get(f"{self.url}api/user/profile").json()
+        guid = uuid.uuid4()
+        url = f"{self.url}api/realty"
+        payload = {
+           "title": "My title " + str(guid),
+           "price": 1,
+           "city": "My city",
+           "address": "address",
+           "image": "image",
+           "user_id": resp["id"]
+        }
+        self.session.post(url, json=payload)
+
+        self.login_buyer()
+        resp = self.session.get(f"{self.url}api/user/profile").json()
+        print("Get profile:", resp)
+
+        guid = uuid.uuid4()
+        url = f"{self.url}api/realty"
+        payload = {
+           "title": "My title " + str(guid),
+           "price": 1,
+           "city": "My city",
+           "address": "address",
+           "image": "image",
+           "user_id": resp["id"]
+        }
+
+        response = self.session.post(url, json=payload)
+        print("POST Response:", response.json())
+        print("Status:", response.status_code)
+        self.assertEqual(response.status_code, 403)
+
+        response = self.session.get(f"{url}/")
+        realties = response.json()
+        print(realties)
+
+
 
 
     def test_delete_realty(self):
@@ -176,6 +218,25 @@ class ServerTests(unittest.TestCase):
         response_publish = self.session.patch(f"{url}{realty_id}/publish", json=realty_patch)
         print(response_publish)
         self.assertEqual(response_publish.status_code, 200, f"{response_publish.json}")
+
+    
+    def test_buyer_add_realty(self):
+        self.login_buyer()
+        resp = self.session.get(f"{self.url}/api/user/profile").json()
+        print("Get profile:", resp)
+        guid = uuid.uuid4()
+        url = f"{self.url}/api/realty/"
+        payload = {
+           "title": "My title " + str(guid),
+           "price": 1,
+           "city": "My city",
+           "address": "address",
+           "image": "image",
+           "user_id": resp["id"]
+        }
+
+        response = self.session.post(url, json=payload)
+        self.assertEqual(response.status_code, 403, f"{response.json}")
 
 
 

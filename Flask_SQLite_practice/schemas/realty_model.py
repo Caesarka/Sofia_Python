@@ -4,17 +4,19 @@ from typing import Optional
 
 class Realty(BaseModel):
     
-    id: int | None = None
+
     title: str
     price: float
     city: str
     address: str
     image: str | None = None
     created_at: str = Field(default_factory=lambda: datetime.now().isoformat(timespec="seconds"))
+    published_at: Optional[str] = None
     status: int = 0
     user_id: int
     is_deleted: int = 0
-
+    id: int | None = None
+    
     class Config:
         orm_mode = True
 
@@ -27,6 +29,7 @@ class RealtyPatch(BaseModel):
     image: Optional[str] = None
     status: Optional[int] = None
     is_deleted: Optional[int] = None
+    published_at: Optional[str] = None
 
     class Config:
         orm_mode = True
