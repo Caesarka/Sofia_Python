@@ -1,11 +1,13 @@
 import sqlite3
+import os
 from pathlib import Path
 from schemas.realty_model import Realty, RealtyPatch
 from schemas.user_model import UserAuth, UserUpdate
 
 BASE_DIR = Path(__file__).parent
-DB_PATH = BASE_DIR / "database.db"
 
+
+DB_PATH = Path(os.getenv("DB_PATH", BASE_DIR / "database.db"))
 
 SQL_SCHEMA = """
 CREATE TABLE IF NOT EXISTS realty (
