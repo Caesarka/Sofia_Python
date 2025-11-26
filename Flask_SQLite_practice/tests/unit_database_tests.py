@@ -15,7 +15,7 @@ class DatabaseTests(unittest.TestCase):
         os.close(db_fd)
         db_sql.DB_PATH = self.temp_path
         print("\nSetup...")
-        db_sql.init_db_if_needed()
+        db_sql.init_db_if_needed_v1()
         print("\nSetup Done")
 
 

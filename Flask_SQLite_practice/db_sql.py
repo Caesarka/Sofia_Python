@@ -50,7 +50,7 @@ def get_db():
     conn.row_factory = sqlite3.Row
     return conn
 
-def init_db_if_needed():
+def init_db_if_needed_v1():
     Path(DB_PATH).parent.mkdir(parents=True, exist_ok=True)
     database = get_db()
     database.executescript(SQL_SCHEMA)

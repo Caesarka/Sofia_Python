@@ -1,12 +1,12 @@
-from flask import Flask, render_template
+﻿from flask import Flask, render_template
 from flask_restx import Api
-from db_sql import init_db_if_needed
+from db_sql import init_db_if_needed_v1
 from api_models.realty_api_model import ns_realty
 from api_models.user_api_model import ns_user
 from controllers import user_controller, realty_controller
 
 
-init_db_if_needed()
+init_db_if_needed_v1()
 
 app = Flask(__name__, template_folder='views', static_folder='static')
 app.secret_key = "supersecret"
