@@ -1,6 +1,6 @@
 from flask import Flask, render_template
 from flask_restx import Api
-from db import init_db_if_needed
+from db_sql import init_db_if_needed
 from api_models.realty_api_model import ns_realty
 from api_models.user_api_model import ns_user
 from controllers import user_controller, realty_controller
