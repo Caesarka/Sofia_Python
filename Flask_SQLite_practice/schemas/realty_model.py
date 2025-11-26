@@ -17,8 +17,8 @@ class Realty(BaseModel):
     is_deleted: int = 0
     id: int | None = None
     
-    class Config:
-        orm_mode = True
+    #class Config:
+    #    orm_mode = True
 
 class RealtyPatch(BaseModel):
     
@@ -31,5 +31,5 @@ class RealtyPatch(BaseModel):
     is_deleted: Optional[int] = None
     published_at: Optional[str] = None
 
-    class Config:
-        orm_mode = True
+    #class Config:
+    #    orm_mode = True

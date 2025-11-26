@@ -1,7 +1,11 @@
 from pydantic import BaseModel, Field
-from datetime import datetime
+from sqlalchemy import DateTime, String, Enum, Boolean, func
+from sqlalchemy.orm import Mapped, mapped_column
+from datetime import datetime, timezone
 import hashlib
 from enum import Enum
+
+from models.index import Base
 
 class UserRole(str, Enum):
     BUYER = "buyer"
@@ -17,8 +21,8 @@ class UserAuth(BaseModel):
     role: UserRole = UserRole.BUYER
     status: str
 
-    class Config:
-        orm_mode = True
+    #class Config:
+    #    orm_mode = True
     
     @staticmethod
     def hash_password(password):
@@ -30,6 +34,34 @@ class UserUpdate(BaseModel):
     email: str | None = None
     password: str | None = None
 
-    class Config:
-        orm_mode = True
+    #class Config:
+    #    orm_mode = True
 
+class UserCreate(BaseModel):
+    name: str | None = None
+    email: str | None = None
+    password: str | None = None
+    role: str | None = None
+
+    #class Config:
+    #    orm_mode = True
+
+class UserORM(Base):
+    __tablename__ = 'user'
+    
+    id: Mapped[int] = mapped_column(primary_key=True)
+    
+    name: Mapped[str] = mapped_column(String(255), nullable=False)
+    email: Mapped[str] = mapped_column(String(120), nullable=False, unique=True)
+    
+    password: Mapped[str] = mapped_column(String(255), nullable=False)
+    
+    reg_date: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), server_default=func.now())
+    
+    role: Mapped[UserRole] = mapped_column(String(255), nullable=False)
+    #role: Mapped[UserRole] = mapped_column(Enum(UserRole), nullable=False)
+    
+    status: Mapped[bool] = mapped_column(Boolean, default=True)
+    
+    def __repr__(self) -> str:
+        return f"<User(id={self.id}, name='{self.name}', role='{self.role}')>"
