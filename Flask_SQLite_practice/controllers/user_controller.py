@@ -3,7 +3,7 @@ from flask_restx import Resource
 from flask import jsonify, request, make_response
 from schemas.user_model import UserAuth, UserUpdate, UserRole
 from api_models.user_api_model import ns_user, user_model, auth_model, update_model
-import db
+import db_sql
 from auth.utils import create_access_token
 from auth.jwt_utils import jwt_required
 from pydantic import ValidationError
@@ -24,7 +24,7 @@ class Register(Resource):
             if user == UserRole.ADMIN:
                 return ns_user.abort(409, "Permission error")
         
-            db.register_user(user)
+            db_sql.register_user(user)
             return user.model_dump(), 201
     
         except Exception as e:
@@ -36,7 +36,7 @@ class Register(Resource):
 class UserList(Resource):
     @ns_user.expect(user_model)
     def get(self):
-        users = db.get_all_users()
+        users = db_sql.get_all_users()
         return [user.model_dump() for user in users], 200
 
 
@@ -45,7 +45,7 @@ class Login(Resource):
     @ns_user.expect(auth_model)
     def post(self):
         data = request.json
-        user = db.get_by_email(data.get("email"))
+        user = db_sql.get_by_email(data.get("email"))
         if user and user.password == UserAuth.hash_password(data.get("password")):
             access_token = create_access_token({"user_id": user.id, "role": user.role})
             resp = make_response({"message": f"Welcome {user.name}"})
@@ -76,7 +76,7 @@ class UserList(Resource):
     @ns_user.doc(responses={200: "No content"})
     def get(self, user_id):
         try:
-            user = db.get_user(user_id)
+            user = db_sql.get_user(user_id)
             return user.model_dump(), 200
         except Exception:
             ns_user.abort(404, f"User with id={user_id} not found")
@@ -89,7 +89,7 @@ class UserList(Resource):
         if user.id != user_id:
             ns_user.abort(400, f"User id does not match")
         try:
-            db.update_user(user)
+            db_sql.update_user(user)
             return {}, 200
         except Exception:
             ns_user.abort(404, f"User not found")
@@ -98,7 +98,7 @@ class UserList(Resource):
     @ns_user.doc()
     def delete(self, user_id):
         try:
-            is_deleted = db.delete_user(user_id)
+            is_deleted = db_sql.delete_user(user_id)
             if is_deleted:
                 return {'message': f'User with id {user_id} deleted'}, 200
             else:
@@ -114,7 +114,7 @@ class UserProfile(Resource):
     def get(self):
         user_id = request.user["user_id"]
         try:
-            user = db.get_user(user_id)
+            user = db_sql.get_user(user_id)
             return user.model_dump(), 200
         except Exception:
             ns_user.abort(404, f"User with id={user_id} not found")
@@ -140,7 +140,7 @@ class UserProfile(Resource):
             update_data.password = UserAuth.hash_password(update_data.password)
         
         try:
-            db.update_user(update_data, user_id)
+            db_sql.update_user(update_data, user_id)
         except ValueError as e:
             ns_user.abort(409, f'Conflict data: {e}')
         except KeyError as e:
@@ -155,7 +155,7 @@ class UserProfile(Resource):
     def delete(self):
         try:
             user_id = request.user["user_id"]
-            is_deleted = db.delete_user(user_id)
+            is_deleted = db_sql.delete_user(user_id)
             if is_deleted:
                 return {'message': f'User with id {user_id} deleted'}, 200
             else:

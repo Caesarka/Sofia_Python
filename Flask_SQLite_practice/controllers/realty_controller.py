@@ -6,7 +6,7 @@ from api_models.realty_api_model import ns_realty, realty_model
 from auth.jwt_utils import jwt_required
 from auth.role_utils import role_required
 from pydantic import ValidationError
-import db
+import db_sql
 
 
 @ns_realty.route("/")
@@ -20,13 +20,13 @@ class RealtyList(Resource):
         user_role = user["role"]
 
         if user_role == 'buyer':
-            realties = db.get_all_active_realties()
+            realties = db_sql.get_all_active_realties()
 
         elif user_role == 'realtor':
-            realties = db.get_all_realties_realtor(user_id)
+            realties = db_sql.get_all_realties_realtor(user_id)
 
         else:
-            realties = db.get_all_realties()
+            realties = db_sql.get_all_realties()
 
         return [r.model_dump() for r in realties], 200
     
@@ -44,7 +44,7 @@ class RealtyList(Resource):
         except ValidationError as exc:
             return {"error": exc.errors()}, 400
 
-        new_realty = db.create_realty(realty)
+        new_realty = db_sql.create_realty(realty)
         return new_realty.model_dump(), 201
 
 
@@ -53,7 +53,7 @@ class RealtyItem(Resource):
     @ns_realty.marshal_with(realty_model)
     def get(self, realty_id):
         try:
-            realty = db.get_realty(realty_id)
+            realty = db_sql.get_realty(realty_id)
             return realty.model_dump(), 200
         except Exception:
             ns_realty.abort(404, f"Realty with id={realty_id} not found")
@@ -71,7 +71,7 @@ class RealtyItem(Resource):
             ns_realty.abort(403, "You are not authorized to modify this realty listing.")
             
         #try:
-        db.replace_realty(realty, realty_id)
+        db_sql.replace_realty(realty, realty_id)
         return {"message": "Updated"}, 200
         #except Exception as ex:
             #ns_realty.abort(404, f"Realty with id={realty_id} not found. Ex: {ex}")
@@ -88,13 +88,13 @@ class RealtyItem(Resource):
         print(user_role)
         if "status" in update_data and user_role == 'realtor':
             ns_realty.abort(403, "You are not authorized to change the publish status.")
-        db.patch_realty(realty, realty_id)
+        db_sql.patch_realty(realty, realty_id)
 
     @jwt_required
     @role_required(['realtor', 'admin'])
     def delete(self, realty_id):
         try:
-            realty = db.get_realty(realty_id)
+            realty = db_sql.get_realty(realty_id)
         except Exception:
             ns_realty.abort(404, f"Realty with id={realty_id} not found")
         user = request.user
@@ -109,7 +109,7 @@ class RealtyItem(Resource):
             print("You do not have permission for deleting this realty")
 
         try:
-            is_deleted = db.delete_realty(realty_id)
+            is_deleted = db_sql.delete_realty(realty_id)
             if is_deleted:
                 return {'message': f'Task {realty_id} deleted'}, 200
             else:
@@ -125,10 +125,10 @@ class RealtyPublish(Resource):
     @role_required(['admin'])
     def patch(self, realty_id):
         try:
-            realty = db.get_realty(realty_id, filter = 'AND is_deleted = 0')
+            realty = db_sql.get_realty(realty_id, filter = 'AND is_deleted = 0')
         except Exception:
             ns_realty.abort(404, f"Realty with id={realty_id} not found")
 
         now = datetime.now().isoformat(timespec='seconds')
         patch_data = RealtyPatch(status=1, published_at=now)
-        db.patch_realty(patch_data, realty_id)
+        db_sql.patch_realty(patch_data, realty_id)
