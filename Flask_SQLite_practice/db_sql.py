@@ -2,12 +2,19 @@ import sqlite3
 import os
 from pathlib import Path
 from schemas.realty_model import Realty, RealtyPatch
-from schemas.user_model import UserAuth, UserUpdate
+from schemas.user_model import UserAuth, UserUpdate, UserORM
+
+
+
+from sqlalchemy import select, insert
+from sqlalchemy.orm import Session
+from db.session import get_session
+
 
 BASE_DIR = Path(__file__).parent
-
-
+print(f"v1 BASE_DIR in db_sql.py: {BASE_DIR}")
 DB_PATH = Path(os.getenv("DB_PATH", BASE_DIR / "database.db"))
+print(f"v1 DB_PATH in db_sql.py: {DB_PATH}")
 
 SQL_SCHEMA = """
 CREATE TABLE IF NOT EXISTS realty (
@@ -45,7 +52,7 @@ CREATE TABLE IF NOT EXISTS favorite (
 """
 
 def get_db():
-    print(f"\nConnecting to DB at {DB_PATH}")
+    print(f"\nv1 Connecting to DB at {DB_PATH}")
     conn = sqlite3.connect(str(DB_PATH))
     conn.row_factory = sqlite3.Row
     return conn
@@ -122,7 +129,6 @@ def get_all_realties_realtor(user_id) -> list[Realty]:
         db.close()
 
 
-
 def replace_realty(realty: Realty, realty_id: int):
     update_data = realty.model_dump()
     if not update_data:
@@ -178,7 +184,15 @@ def delete_realty(realty_id: int):
 #        db.close()
 
 # user
-def register_user(user: UserAuth):
+
+def register_user(session: Session, user_data: dict):
+    stmt = insert(UserORM).values(**user_data).returning(UserORM)
+    result = session.execute(stmt)
+    user = result.scalar_one()
+    session.commit()
+    return user
+
+def register_user_sql(user: UserAuth):
     db = get_db()
     pw_hash = UserAuth.hash_password(user.password)
     user.password = pw_hash

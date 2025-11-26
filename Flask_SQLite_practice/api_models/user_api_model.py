@@ -23,3 +23,9 @@ update_model = ns_user.model("UserUpdate", {
     "email": fields.String,
     "password": fields.String,
 })
+
+user_model_id = ns_user.model("User", {
+    "id": fields.Integer(readonly=True),
+    "name": fields.String,
+    "email": fields.String,
+})

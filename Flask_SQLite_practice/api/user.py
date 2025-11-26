@@ -1,57 +1,69 @@
-﻿from sqlite3 import IntegrityError
+﻿'''
+from sqlite3 import IntegrityError
 from flask_restx import Resource
 from flask import jsonify, request, make_response
-from db.session import get_session
-from schemas.user_model import UserAuth, UserCreate, UserUpdate, UserRole, UserORM
-from api_models.user_api_model import ns_user, user_model, auth_model, update_model
+from schemas.user_model import UserAuth, UserUpdate, UserRole, UserCreate, UserORM
+from api_models.user_api_model import ns_user, user_model, auth_model, update_model, user_model_id
 import db_sql
 from auth.utils import create_access_token
 from auth.jwt_utils import jwt_required
 from pydantic import ValidationError
 
+from db.session import get_session
+
+from db_sql import get_user_by_id, get_all_users, register_user, get_by_email
+
+
 @ns_user.route("/register")
 class Register(Resource):
     @ns_user.expect(user_model)
+    #@ns_user.marshal_with(user_model_id)
     def post(self):
         try:
             DBSession = get_session()
             user_data = request.json
+            
             if not user_data:
                 return {"message": "Missing JSON body"}, 400
             try:
-                user_create = UserCreate.model_validate(user_data)
-                
+                user = UserORM.model_validate(user_data)
             except ValidationError as e:
-                return {"message": "Invalid imput", "errors": e.errors()}, 422
+                return {"message": "Invalid input", "errors": e.errors()}, 422
         
-            #if user == UserRole.ADMIN:
-            #    return ns_user.abort(409, "Permission error")
+            if user.role == UserRole.ADMIN:
+                return ns_user.abort(409, "Permission error")
         
-            db_sql.register_user(DBSession, user_create.model_dump())
-            return user_create.__dict__, 201
+            new_user = register_user(DBSession, user.model_dump())
+            return new_user.__dict__, 201
     
         except Exception as e:
             print("Unexpected error in registration:", e)
-            raise
             return {"message": "Internal server error"}, 500
 
 
 @ns_user.route("/")
 class UserList(Resource):
-    @ns_user.expect(user_model)
+    @ns_user.marshal_list_with(user_model_id)
     def get(self):
-        users = db_sql.get_all_users()
-        return [user.model_dump() for user in users], 200
+        # users = db.get_all_users()
+        # return [user.model_dump() for user in users], 200
+        
+        DBSession = get_session()
+        users = get_all_users(session=DBSession)
+
+        return users, 200
 
 
 @ns_user.route("/login")
 class Login(Resource):
     @ns_user.expect(auth_model)
     def post(self):
+        DBSession = get_session()
         data = request.json
-        user = db_sql.get_by_email(data.get("email"))
+        user = get_by_email(DBSession, data.get("email"))
         if user and user.password == UserAuth.hash_password(data.get("password")):
-            access_token = create_access_token({"user_id": user.id, "role": user.role})
+
+            access_token = create_access_token({"user_id": user.id, "role": user.role.value})
             resp = make_response({"message": f"Welcome {user.name}"})
             resp.set_cookie(
                 "access_token",
@@ -61,7 +73,6 @@ class Login(Resource):
                 max_age=60*60*24
             )
             return resp
-            #return {"access token": access_token}, 200
         return {"message": "Invalid credentials"}, 401
 
 
@@ -76,12 +87,17 @@ class Logout(Resource):
 
 @ns_user.route("/<int:user_id>")
 class UserList(Resource):
-    @jwt_required
+    #@jwt_required
     @ns_user.doc(responses={200: "No content"})
+    @ns_user.marshal_with(user_model_id)
     def get(self, user_id):
         try:
-            user = db_sql.get_user(user_id)
-            return user.model_dump(), 200
+            # user = db.get_user(user_id)
+            DBSession = get_session()
+            
+            user = get_user_by_id(session=DBSession, user_id=user_id)
+            print(user)
+            return user, 200
         except Exception:
             ns_user.abort(404, f"User with id={user_id} not found")
 
@@ -114,13 +130,21 @@ class UserList(Resource):
 
 @ns_user.route("/profile")
 class UserProfile(Resource):
+
     @jwt_required
     def get(self):
+        DBsession = get_session()
         user_id = request.user["user_id"]
         try:
-            user = db_sql.get_user(user_id)
-            return user.model_dump(), 200
-        except Exception:
+            user = get_user_by_id(DBsession, user_id)
+            ut = type (user)
+            print("User from DB:", user)
+            print(type(user.role), user.role)
+            x = user.__dict__
+            return UserAuth.model_validate(x, from_attributes=True).model_dump()
+                                           #, from_attributes=True).model_dump(), 200
+        except Exception as ex:
+            print(ex)
             ns_user.abort(404, f"User with id={user_id} not found")
 
     @jwt_required
@@ -166,3 +190,4 @@ class UserProfile(Resource):
                 return {'message': f'User with id {user_id} not found'}, 403
         except Exception as e:
             return {'message': str(e)}, 500
+            '''
