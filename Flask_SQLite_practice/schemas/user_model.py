@@ -3,23 +3,23 @@ from sqlalchemy import DateTime, String, Enum, Boolean, func
 from sqlalchemy.orm import Mapped, mapped_column
 from datetime import datetime, timezone
 import hashlib
-from enum import Enum
+#from enum import Enum
 
 from models.index import Base
 
-class UserRole(str, Enum):
-    BUYER = "buyer"
-    REALTOR = "realtor"
-    ADMIN = "admin"
-
+#class UserRole(str, Enum):
+#    BUYER = "buyer"
+#    REALTOR = "realtor"
+#    ADMIN = "admin"
+#
 class UserAuth(BaseModel):
     id: int | None = None
     name: str
     email: str
     password: str
     reg_date: str = Field(default_factory=lambda: datetime.now().isoformat(timespec="seconds"))
-    role: UserRole = UserRole.BUYER
-    status: str
+    role: str
+    status: str = 'active'
 
     #class Config:
     #    orm_mode = True
@@ -38,6 +38,7 @@ class UserUpdate(BaseModel):
     #    orm_mode = True
 
 class UserCreate(BaseModel):
+    id: int | None = None
     name: str | None = None
     email: str | None = None
     password: str | None = None
@@ -56,12 +57,13 @@ class UserORM(Base):
     
     password: Mapped[str] = mapped_column(String(255), nullable=False)
     
-    reg_date: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), server_default=func.now())
+    # TODO datetime DateTime(timezone=True)
+    reg_date: Mapped[str] = mapped_column(String(255), default=lambda: datetime.now(timezone.utc), server_default=func.now())
     
-    role: Mapped[UserRole] = mapped_column(String(255), nullable=False)
+    role: Mapped[str] = mapped_column(String(255), nullable=False)
     #role: Mapped[UserRole] = mapped_column(Enum(UserRole), nullable=False)
     
-    status: Mapped[bool] = mapped_column(Boolean, default=True)
+    status: Mapped[str] = mapped_column(String(255), default='active')
     
     def __repr__(self) -> str:
         return f"<User(id={self.id}, name='{self.name}', role='{self.role}')>"

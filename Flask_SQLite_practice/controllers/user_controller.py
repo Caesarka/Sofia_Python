@@ -2,7 +2,7 @@
 from flask_restx import Resource
 from flask import jsonify, request, make_response
 from db.session import get_session
-from schemas.user_model import UserAuth, UserCreate, UserUpdate, UserRole, UserORM
+from schemas.user_model import UserAuth, UserCreate, UserUpdate, UserORM
 from api_models.user_api_model import ns_user, user_model, auth_model, update_model
 import db_sql
 from auth.utils import create_access_token
@@ -13,12 +13,13 @@ from pydantic import ValidationError
 class Register(Resource):
     @ns_user.expect(user_model)
     def post(self):
+        DBSession = get_session()
         try:
-            DBSession = get_session()
             user_data = request.json
             if not user_data:
                 return {"message": "Missing JSON body"}, 400
             try:
+                user_data['password'] = UserAuth.hash_password(user_data['password'])
                 user_create = UserCreate.model_validate(user_data)
                 
             except ValidationError as e:
@@ -28,12 +29,15 @@ class Register(Resource):
             #    return ns_user.abort(409, "Permission error")
         
             db_sql.register_user(DBSession, user_create.model_dump())
+            
             return user_create.__dict__, 201
     
         except Exception as e:
             print("Unexpected error in registration:", e)
-            raise
+            # raise
             return {"message": "Internal server error"}, 500
+        finally:
+            DBSession.close()
 
 
 @ns_user.route("/")
@@ -75,7 +79,7 @@ class Logout(Resource):
     
 
 @ns_user.route("/<int:user_id>")
-class UserList(Resource):
+class UserDetail(Resource):
     @jwt_required
     @ns_user.doc(responses={200: "No content"})
     def get(self, user_id):

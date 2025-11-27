@@ -2,25 +2,48 @@
 import os
 import tempfile
 import unittest
+import uuid
+import gc
 
 #from database.config import DB_PATH
+from db import session
 import db_sql as db_sql
 from schemas.realty_model import Realty, RealtyPatch
-from schemas.user_model import UserAuth, UserUpdate
+from schemas.user_model import UserAuth, UserUpdate, UserCreate
 
 class DatabaseTests(unittest.TestCase):
 
     def setUp(self):
         db_fd, self.temp_path = tempfile.mkstemp()
         os.close(db_fd)
+        
         db_sql.DB_PATH = self.temp_path
+        session.DB_PATH = self.temp_path
+        
+        session.DATABASE_URL = f"sqlite:///{self.temp_path}"
+        session.engine = None
+        session.session_factory = None
+        
         print("\nSetup...")
         db_sql.init_db_if_needed_v1()
+        # v2 for ORM
+        session.init_db_if_needed_v2()
+        self.session = session.session_factory()
+
         print("\nSetup Done")
 
 
     def tearDown(self):
-        os.unlink(self.temp_path)
+        if hasattr(self, 'session') and self.session:
+            self.session.close()
+            
+        if session.engine:
+            session.engine.dispose()
+        
+        gc.collect()
+        
+        if os.path.exists(self.temp_path):
+            os.unlink(self.temp_path)
 
 
     def test_empty_db_schema(self):
@@ -101,46 +124,64 @@ class DatabaseTests(unittest.TestCase):
         self.assertEqual(new_field_realty.title, update_field.title)
 
 #user
+
+
+
+    def create_user(self):
+        self.user = UserCreate(
+            name = f"Julianna + {str(uuid.uuid4())}",
+            email = f"my@mail.com + {str(uuid.uuid4())}",
+            password = "hetryi459865ruhyrkjt86", 
+            reg_date = "10.15.2025.11:00AM", 
+            role = "buyer", 
+            status = True
+        )
+    
+        user_dict = self.user.model_dump()
+        user_dict['reg_date'] = datetime.now()
+        db_sql.register_user(self.session, user_dict)
+
+        
+
     def test_register_user(self):
-        user = UserAuth(name="Julianna", email="my@mail.com", password="hetryi459865ruhyrkjt86", reg_date="10.15.2025.11:00AM", role="buyer", status="active")
-        db_sql.register_user(user)
-        print(user.id)
-        new_user = db_sql.get_user(user.id)
-        self.assertEqual(new_user.id, user.id)
-        self.assertEqual(new_user.email, user.email)
+        self.create_user()
+
+        # todo: переписать get_by_email на pydantic
+        new_user = db_sql.get_by_email(self.user.email) #self.session, 
+        self.assertIsNotNone(new_user.id)
+        #self.assertEqual(new_user.email, user_dict['email'])
 
 
     def test_get_user_by_email(self):
-        user = UserAuth(name="Julianna", email="my@mail.com", password="hetryi459865ruhyrkjt86", reg_date="10.15.2025.11:00AM", role="buyer", status="active")
-        db_sql.register_user(user)
-        get_user = db_sql.get_by_email(user.email)
-        self.assertEqual(get_user.email, user.email)
+        self.create_user() 
+        get_user = db_sql.get_by_email(self.user.email) #self.session, 
+        self.assertEqual(get_user.email, self.user.email)
         self.assertNotEqual(get_user, "wrong@email.com")
 
 
     def test_get_users(self):
-        user = UserAuth(name="Julianna", email="my@mail.com", password="hetryi459865ruhyrkjt86", reg_date="10.15.2025.11:00AM", role="buyer", status="active")
-        user1 = UserAuth(name="Dmitry", email="another@mail.com", password="trjtyjetyj56456756et", reg_date="10.16.2025.11:39AM", role="buyer", status="active")
-        db_sql.register_user(user)
-        db_sql.register_user(user1)
+        user = UserAuth(name="Julianna", email="my@mail.com", password="hetryi459865ruhyrkjt86", reg_date="2025-10-15T11:00:00", role="buyer", status='active')
+        user1 = UserAuth(name="Dmitry", email="another@mail.com", password="trjtyjetyj56456756et", reg_date="2025-10-15T11:00:00", role="buyer", status='active')
+        db_sql.register_user(self.session, user.model_dump())
+        db_sql.register_user(self.session, user1.model_dump())
         users = db_sql.get_all_users()
         self.assertEqual(len(users), 2)
 
 
     def test_delete_user(self):
-        user = UserAuth(name="Julianna", email="my@mail.com", password="hetryi459865ruhyrkjt86", reg_date="10.15.2025.11:00AM", role="buyer", status="active")
-        db_sql.register_user(user)
-        db_sql.delete_user(user.id)
-        inactive_user = db_sql.get_user(user.id)
+        user = UserAuth(name="Julianna", email="my@mail.com", password="hetryi459865ruhyrkjt86", reg_date="2025-10-15T11:00:00", role="buyer", status='active')
+        userOrm = db_sql.register_user(self.session, user.model_dump())
+        db_sql.delete_user(userOrm.id)
+        inactive_user = db_sql.get_user(userOrm.id)
         self.assertEqual(inactive_user.status, "inactive")
 
 
     def test_update_user(self):
-        user = UserAuth(name="Julianna", email="my@mail.com", password="hetryi459865ruhyrkjt86", reg_date="10.15.2025.11:00AM", role="buyer", status="active")
-        db_sql.register_user(user)
+        user = UserAuth(name="Julianna", email="my@mail.com", password="hetryi459865ruhyrkjt86", reg_date="2025-10-15T11:00:00", role="buyer", status='active')
+        userOrm = db_sql.register_user(self.session, user.model_dump())
         update_user = UserUpdate(name="Julia", email="mew@mail.com", password="newpassword4353")
-        db_sql.update_user(update_user, user.id)
-        new_user = db_sql.get_user(user.id)
+        db_sql.update_user(update_user, userOrm.id)
+        new_user = db_sql.get_user(userOrm.id)
         self.assertEqual(new_user.name, update_user.name)
         self.assertEqual(new_user.email, update_user.email)
         update_user.name = "Anna"
