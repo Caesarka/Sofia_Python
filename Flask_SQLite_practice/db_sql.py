@@ -192,6 +192,11 @@ def register_user(session: Session, user_data: dict):
     session.commit()
     return user
 
+def get_by_email_orm(session: Session, email: str):
+    result = session.execute(select(UserORM).where(UserORM.email == email))
+    data = result.scalar_one_or_none()
+    return data
+
 def register_user_sql(user: UserAuth):
     db = get_db()
     pw_hash = UserAuth.hash_password(user.password)

@@ -30,12 +30,16 @@ class ServerTests(unittest.TestCase):
            "role": role,
            "status": "active"
         }
-        requests.post(f"{url}/register", json=payload_register)
+        rrr = requests.post(f"{url}/register", json=payload_register)
+        rrr.raise_for_status()
         payload_login = {
             "email": payload_register.get("email"),
             "password": payload_register.get("password")
         }
-        self.session.post(f"{url}/login", json=payload_login)
+        rrr = self.session.post(f"{url}/login", json=payload_login)
+        rrr.raise_for_status()
+        print(f"Login {role} response:", rrr.status_code, rrr.text)
+        print("")
 
 
 
