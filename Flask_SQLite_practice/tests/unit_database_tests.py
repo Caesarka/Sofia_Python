@@ -8,8 +8,8 @@ import gc
 #from database.config import DB_PATH
 from db import session
 import db_sql as db_sql
-from schemas.realty_model import Realty, RealtyPatch
-from schemas.user_model import UserAuth, UserUpdate, UserCreate
+from L2_Api_Controllers.realty_model import Realty, RealtyPatch
+from L2_Api_Controllers.user_model import UserAuth, UserUpdate, UserCreate
 
 class DatabaseTests(unittest.TestCase):
 
