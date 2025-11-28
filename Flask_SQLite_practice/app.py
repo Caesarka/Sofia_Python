@@ -9,7 +9,7 @@ from db.session import session_factory, init_db_if_needed_v2, get_session
 init_db_if_needed_v1()
 init_db_if_needed_v2()
 
-app = Flask(__name__, template_folder='views', static_folder='static')
+app = Flask(__name__, template_folder='L1_Html_Client/views', static_folder='L1_Html_Client/static')
 app.secret_key = "supersecret"
 
 @app.route('/')
