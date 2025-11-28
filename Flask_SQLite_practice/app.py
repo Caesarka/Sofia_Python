@@ -12,13 +12,15 @@ init_db_if_needed_v2()
 app = Flask(__name__, template_folder='views', static_folder='static')
 app.secret_key = "supersecret"
 
-
-
+@app.route('/')
+def index():
+    return render_template('index.html')
 
 api = Api(app, title="My API", doc="/doc/")
-
 api.add_namespace(ns_realty, path='/api/realty')
 api.add_namespace(ns_user, path='/api/user')
+
+
 
 #@app.before_request
 #def create_session_db():
