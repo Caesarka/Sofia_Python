@@ -1,10 +1,10 @@
 ﻿from sqlite3 import IntegrityError
 from flask_restx import Resource
 from flask import jsonify, request, make_response
-from db.session import get_session
-from L2_Api_Controllers.user_model import UserAuth, UserCreate, UserUpdate
+from L4_Database_Access import db_sql
+from L4_Database_Access.session import get_session
+from L2_Api_Controllers.user_model import UserAuth, UserCreate, UserLogin, UserUpdate
 from L2_Api_Controllers.user_api_model import ns_user, user_model, auth_model, update_model
-import db_sql
 from .auth.utils import create_access_token
 from .auth.jwt_utils import jwt_required
 from pydantic import ValidationError
@@ -52,9 +52,10 @@ class UserList(Resource):
 class Login(Resource):
     @ns_user.expect(auth_model)
     def post(self):
-        data = request.json
-        user = db_sql.get_by_email(data.get("email"))
-        if user and user.password == UserAuth.hash_password(data.get("password")):
+        userRequest = UserLogin.model_validate(request.json)
+        print("Login attempt for:", userRequest.email)
+        user = db_sql.get_by_email(userRequest.email)
+        if user and user.password == UserAuth.hash_password(userRequest.password):
             access_token = create_access_token({"user_id": user.id, "role": user.role})
             resp = make_response({"message": f"Welcome {user.name}"})
             resp.set_cookie(
