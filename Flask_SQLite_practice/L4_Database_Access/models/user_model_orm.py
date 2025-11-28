@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 import hashlib
 #from enum import Enum
 
-from models.index import Base
+from .index import Base
 
 class UserORM(Base):
     __tablename__ = 'user'

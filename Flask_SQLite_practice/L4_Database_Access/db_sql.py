@@ -1,16 +1,13 @@
 import sqlite3
 import os
 from pathlib import Path
+from .models.user_model_orm import UserORM
 from L5_Database.database_schema import SQL_SCHEMA
 from L2_Api_Controllers.realty_model import Realty, RealtyPatch
 from L2_Api_Controllers.user_model import UserAuth, UserUpdate
-from schemas.user_model_orm import UserORM
-
-
-
 from sqlalchemy import select, insert
 from sqlalchemy.orm import Session
-from db.session import get_session
+from .session import get_session
 
 
 BASE_DIR = Path(__file__).parent

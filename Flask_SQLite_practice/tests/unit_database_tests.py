@@ -6,8 +6,8 @@ import uuid
 import gc
 
 #from database.config import DB_PATH
-from db import session
-import db_sql as db_sql
+from L4_Database_Access import session
+import L4_Database_Access.db_sql as db_sql
 from L2_Api_Controllers.realty_model import Realty, RealtyPatch
 from L2_Api_Controllers.user_model import UserAuth, UserUpdate, UserCreate
 

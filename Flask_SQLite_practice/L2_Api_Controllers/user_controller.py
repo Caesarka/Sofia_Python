@@ -1,10 +1,9 @@
 ﻿from sqlite3 import IntegrityError
 from flask_restx import Resource
 from flask import jsonify, request, make_response
-from db.session import get_session
+from L4_Database_Access.session import get_session
 from L2_Api_Controllers.user_model import UserAuth, UserCreate, UserUpdate
 from L2_Api_Controllers.user_api_model import ns_user, user_model, auth_model, update_model
-import db_sql
 from .auth.utils import create_access_token
 from .auth.jwt_utils import jwt_required
 from pydantic import ValidationError
