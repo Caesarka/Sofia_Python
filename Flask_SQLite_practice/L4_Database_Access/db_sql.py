@@ -1,19 +1,14 @@
 import sqlite3
 import os
 from pathlib import Path
+from .models.user_model_orm import UserORM
 from L5_Database.database_schema import SQL_SCHEMA
 from L2_Api_Controllers.realty_model import Realty, RealtyPatch
 from L2_Api_Controllers.user_model import UserAuth, UserUpdate
-from schemas.user_model_orm import UserORM
-
-
-
 from sqlalchemy import select, insert
 from sqlalchemy.orm import Session
-from db.session import get_session
 
-
-BASE_DIR = Path(__file__).parent
+BASE_DIR = Path(__file__).parent.parent
 print(f"v1 BASE_DIR in db_sql.py: {BASE_DIR}")
 DB_PATH = Path(os.getenv("DB_PATH", BASE_DIR / "database.db"))
 print(f"v1 DB_PATH in db_sql.py: {DB_PATH}")
@@ -153,6 +148,7 @@ def delete_realty(realty_id: int):
 # user
 
 def register_user(session: Session, user_data: dict):
+    print(f"Registering user with data: {user_data}")
     stmt = insert(UserORM).values(**user_data).returning(UserORM)
     result = session.execute(stmt)
     user = result.scalar_one()
@@ -165,6 +161,7 @@ def get_by_email_orm(session: Session, email: str):
     return data
 
 def register_user_sql(user: UserAuth):
+    print(f"Registering user with data: {user}")
     db = get_db()
     pw_hash = UserAuth.hash_password(user.password)
     user.password = pw_hash
@@ -191,10 +188,10 @@ def register_user_sql(user: UserAuth):
 def get_by_email(email: str):
     db = get_db()
     try:
+        print(f"Looking for user with email: {email}")
         cursor = db.cursor()
         cursor.execute("SELECT * FROM user WHERE email=?", (email,))
         user = cursor.fetchone()
-        print(user)
         if not user:
             raise KeyError(f"User with email {email} not found")
         return UserAuth.model_validate(dict(user))

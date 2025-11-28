@@ -9,6 +9,11 @@ import hashlib
 #    REALTOR = "realtor"
 #    ADMIN = "admin"
 #
+
+class UserLogin(BaseModel):
+    email: str
+    password: str
+
 class UserAuth(BaseModel):
     id: int | None = None
     name: str
