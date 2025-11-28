@@ -48,7 +48,6 @@ def get_session() -> Session:
 def init_db_if_needed_v2() -> None:
     session = get_session()
     try:
-        return #tempoary disable to keep single schema
         print("Create tables if not exists...")
         Base.metadata.create_all(engine)
         print("Tables creates succsesfully")
@@ -58,17 +57,3 @@ def init_db_if_needed_v2() -> None:
         print(f"Error: {e}")
     finally:
         session.close()
-
-def close_db_session(exception=None) -> None:
-    session = g.pop('db_session', None)
-    
-    if session:
-        try:
-            if not exception:
-                session.commit()
-            else:
-                session.rollback()
-        except SQLAlchemyError as e:
-            session.rollback()
-        finally:
-            session.close()
