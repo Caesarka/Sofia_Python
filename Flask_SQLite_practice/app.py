@@ -1,8 +1,8 @@
 ﻿from flask import Flask, render_template, g
 from flask_restx import Api
 from db_sql import init_db_if_needed_v1
-from api_models.realty_api_model import ns_realty
-from api_models.user_api_model import ns_user
+from controllers.realty_api_model import ns_realty
+from controllers.user_api_model import ns_user
 from controllers import user_controller, realty_controller
 from db.session import session_factory, init_db_if_needed_v2, get_session
 #from api.user import Register, UserList, Login
