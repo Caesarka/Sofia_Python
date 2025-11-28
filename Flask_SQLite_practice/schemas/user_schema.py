@@ -68,3 +68,26 @@ class UserORM(Base):
     
     def __repr__(self) -> str:
         return f"<User(id={self.id}, name='{self.name}', role='{self.role}')>"
+    
+
+class RealtyORM(Base):
+    __tablename__ = 'realty'
+    
+    id: Mapped[int] = mapped_column(primary_key=True)
+    
+    title: Mapped[str] = mapped_column(Text, nullable=False)
+    
+    email: Mapped[str] = mapped_column(Text, nullable=False, unique=True)
+    
+    password: Mapped[str] = mapped_column(Text, nullable=False)
+    
+    # TODO datetime DateTime(timezone=True)
+    reg_date: Mapped[str] = mapped_column(Text, default=lambda: datetime.now(timezone.utc), server_default=func.now())
+    
+    role: Mapped[str] = mapped_column(Text, nullable=False)
+    #role: Mapped[UserRole] = mapped_column(Enum(UserRole), nullable=False)
+    
+    status: Mapped[str] = mapped_column(Text, default='active')
+    
+    def __repr__(self) -> str:
+        return f"<User(id={self.id}, name='{self.name}', role='{self.role}')>"

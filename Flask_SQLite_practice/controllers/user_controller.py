@@ -1,13 +1,15 @@
 ﻿from sqlite3 import IntegrityError
 from flask_restx import Resource
 from flask import jsonify, request, make_response
-from db.session import get_session
-from schemas.user_model import UserAuth, UserCreate, UserUpdate, UserORM
+from db.orm.session import get_session
+from schemas.user_schema import UserAuth, UserCreate, UserUpdate, UserORM
 from api_models.user_api_model import ns_user, user_model, auth_model, update_model
 import db_sql
 from auth.utils import create_access_token
 from auth.jwt_utils import jwt_required
 from pydantic import ValidationError
+
+from services.auth import Auth_ORM
 
 @ns_user.route("/register")
 class Register(Resource):
@@ -28,7 +30,7 @@ class Register(Resource):
             #if user == UserRole.ADMIN:
             #    return ns_user.abort(409, "Permission error")
         
-            db_sql.register_user(DBSession, user_create.model_dump())
+            Auth_ORM.register_user(DBSession, user_create.model_dump())
             
             return user_create.__dict__, 201
     

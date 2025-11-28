@@ -6,10 +6,10 @@ import uuid
 import gc
 
 #from database.config import DB_PATH
-from db import session
+from db.orm import session
 import db_sql as db_sql
-from schemas.realty_model import Realty, RealtyPatch
-from schemas.user_model import UserAuth, UserUpdate, UserCreate
+from schemas.realty_schema import Realty, RealtyPatch
+from schemas.user_schema import UserAuth, UserUpdate, UserCreate
 
 class DatabaseTests(unittest.TestCase):
 

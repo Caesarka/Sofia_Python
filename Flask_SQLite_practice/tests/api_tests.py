@@ -3,7 +3,7 @@ import requests
 import uuid
 import os
 
-from schemas.realty_model import RealtyPatch
+from schemas.realty_schema import RealtyPatch
 
 
 
