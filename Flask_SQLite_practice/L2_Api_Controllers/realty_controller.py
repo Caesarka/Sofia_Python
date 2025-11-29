@@ -1,12 +1,12 @@
 ﻿from datetime import datetime
 from flask_restx import Resource
 from flask import request
-from schemas.realty_model import Realty, RealtyPatch
-from api_models.realty_api_model import ns_realty, realty_model
-from auth.jwt_utils import jwt_required
-from auth.role_utils import role_required
+from L2_Api_Controllers.realty_model import Realty, RealtyPatch
+from L2_Api_Controllers.realty_api_model import ns_realty, realty_model
+from .auth.jwt_utils import jwt_required
+from .auth.role_utils import role_required
 from pydantic import ValidationError
-import db_sql
+import L4_Database_Access.db_sql as db_sql
 
 
 @ns_realty.route("/")
