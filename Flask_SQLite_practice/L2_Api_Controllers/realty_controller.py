@@ -6,6 +6,10 @@ from L2_Api_Controllers.realty_api_model import ns_realty, realty_model
 from .auth.jwt_utils import jwt_required
 from .auth.role_utils import role_required
 from pydantic import ValidationError
+#from L3_Business_Logic.realty_service import RealtyService
+
+from service_locator import realtyService
+
 import L4_Database_Access.db_sql as db_sql
 
 
@@ -125,10 +129,8 @@ class RealtyPublish(Resource):
     @role_required(['admin'])
     def patch(self, realty_id):
         try:
-            realty = db_sql.get_realty(realty_id, filter = 'AND is_deleted = 0')
+            realtyService.publish_realty(realty_id)
         except Exception:
-            ns_realty.abort(404, f"Realty with id={realty_id} not found")
+            raise
+            #ns_realty.abort(404, f"Realty with id={realty_id} not found")
 
-        now = datetime.now().isoformat(timespec='seconds')
-        patch_data = RealtyPatch(status=1, published_at=now)
-        db_sql.patch_realty(patch_data, realty_id)
