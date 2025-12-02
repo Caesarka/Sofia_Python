@@ -1,30 +1,14 @@
 import sqlite3
 import os
 from pathlib import Path
+
+from L4_Data_Access.sql.session import get_db
 from .models.user_model_orm import UserORM
 from L5_Database.database_schema import SQL_SCHEMA
-from L2_Api_Controllers.realty_model import Realty, RealtyPatch
-from L2_Api_Controllers.user_model import UserAuth, UserUpdate
+from L2_Api_Controllers.schemas.realty_model import Realty, RealtyPatch
+from L2_Api_Controllers.schemas.user_model import UserAuth, UserUpdate
 from sqlalchemy import select, insert
 from sqlalchemy.orm import Session
-
-BASE_DIR = Path(__file__).parent.parent
-print(f"v1 BASE_DIR in db_sql.py: {BASE_DIR}")
-DB_PATH = Path(os.getenv("DB_PATH", BASE_DIR / "database.db"))
-print(f"v1 DB_PATH in db_sql.py: {DB_PATH}")
-
-def get_db():
-    print(f"\nv1 Connecting to DB at {DB_PATH}")
-    conn = sqlite3.connect(str(DB_PATH))
-    conn.row_factory = sqlite3.Row
-    return conn
-
-def init_db_if_needed_v1():
-    Path(DB_PATH).parent.mkdir(parents=True, exist_ok=True)
-    database = get_db()
-    database.executescript(SQL_SCHEMA)
-    database.commit()
-    database.close()
 
 
 # realty

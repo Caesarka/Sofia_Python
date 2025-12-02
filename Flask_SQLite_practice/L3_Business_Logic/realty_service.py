@@ -1,6 +1,6 @@
 from datetime import datetime
-from L2_Api_Controllers.realty_model import RealtyPatch
-import L4_Database_Access.db_sql as db_sql
+from L2_Api_Controllers.schemas.realty_model import RealtyPatch
+import L4_Data_Access.db_sql as db_sql
 
 
 class RealtyService:

@@ -6,10 +6,11 @@ import uuid
 import gc
 
 #from database.config import DB_PATH
-from L4_Database_Access import session
-import L4_Database_Access.db_sql as db_sql
-from L2_Api_Controllers.realty_model import Realty, RealtyPatch
-from L2_Api_Controllers.user_model import UserAuth, UserUpdate, UserCreate
+from L4_Data_Access.orm import session as orm_session
+from L4_Data_Access.sql import session as sql_session
+import L4_Data_Access.db_sql as db_sql
+from L2_Api_Controllers.schemas.realty_model import Realty, RealtyPatch
+from L2_Api_Controllers.schemas.user_model import UserAuth, UserUpdate, UserCreate
 
 class DatabaseTests(unittest.TestCase):
 
@@ -17,18 +18,18 @@ class DatabaseTests(unittest.TestCase):
         db_fd, self.temp_path = tempfile.mkstemp()
         os.close(db_fd)
         
-        db_sql.DB_PATH = self.temp_path
-        session.DB_PATH = self.temp_path
+        sql_session.DB_PATH = self.temp_path
+        orm_session.DB_PATH = self.temp_path
         
-        session.DATABASE_URL = f"sqlite:///{self.temp_path}"
-        session.engine = None
-        session.session_factory = None
+        orm_session.DATABASE_URL = f"sqlite:///{self.temp_path}"
+        orm_session.engine = None
+        orm_session.session_factory = None
         
         print("\nSetup...")
-        db_sql.init_db_if_needed_v1()
+        sql_session.init_db_if_needed_v1()
         # v2 for ORM
-        session.init_db_if_needed_v2()
-        self.session = session.session_factory()
+        orm_session.init_db_if_needed_v2()
+        self.session = orm_session.session_factory()
 
         print("\nSetup Done")
 
@@ -37,8 +38,8 @@ class DatabaseTests(unittest.TestCase):
         if hasattr(self, 'session') and self.session:
             self.session.close()
             
-        if session.engine:
-            session.engine.dispose()
+        if orm_session.engine:
+            orm_session.engine.dispose()
         
         gc.collect()
         
@@ -48,7 +49,7 @@ class DatabaseTests(unittest.TestCase):
 
     def test_empty_db_schema(self):
         #print(f"\nTesting DB at {db.DB_PATH}")
-        conn = db_sql.get_db()
+        conn = sql_session.get_db()
         cursor = conn.cursor()
         cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
         tables = [row[0] for row in cursor.fetchall()]

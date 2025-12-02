@@ -7,7 +7,7 @@ from sqlalchemy.exc import SQLAlchemyError
 
 #from flask import g
 
-from .models import Base
+from ..models import Base
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 print(f"v2 BASE_DIR: {BASE_DIR}")
