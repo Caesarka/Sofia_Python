@@ -1,10 +1,10 @@
 ﻿from flask import Flask, render_template, g
 from flask_restx import Api
-from L4_Database_Access.db_sql import init_db_if_needed_v1
+from L4_Data_Access.sql.session import init_db_if_needed_v1
 from L2_Api_Controllers.realty_api_model import ns_realty
 from L2_Api_Controllers.user_api_model import ns_user
 from L2_Api_Controllers import user_controller, realty_controller
-from L4_Database_Access.session import session_factory, init_db_if_needed_v2, get_session
+from L4_Data_Access.orm.session import session_factory, init_db_if_needed_v2, get_session
 #from api.user import Register, UserList, Login
 init_db_if_needed_v1()
 init_db_if_needed_v2()
@@ -19,8 +19,6 @@ def index():
 api = Api(app, title="My API", doc="/doc/")
 api.add_namespace(ns_realty, path='/api/realty')
 api.add_namespace(ns_user, path='/api/user')
-
-
 
 #@app.before_request
 #def create_session_db():

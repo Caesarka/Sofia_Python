@@ -1,7 +1,7 @@
 ﻿from datetime import datetime
 from flask_restx import Resource
 from flask import request
-from L2_Api_Controllers.realty_model import Realty, RealtyPatch
+from L2_Api_Controllers.schemas.realty_model import Realty, RealtyPatch
 from L2_Api_Controllers.realty_api_model import ns_realty, realty_model
 from .auth.jwt_utils import jwt_required
 from .auth.role_utils import role_required
@@ -10,7 +10,7 @@ from pydantic import ValidationError
 
 from service_locator import realtyService
 
-import L4_Database_Access.db_sql as db_sql
+import L4_Data_Access.db_sql as db_sql
 
 
 @ns_realty.route("/")
@@ -71,6 +71,7 @@ class RealtyItem(Resource):
         user_id = request.user["user_id"]
         #request.json["user_id"] = user_id
         realty = Realty.model_validate(request.json)
+        # todo: переделать под использование декоратора
         if realty.user_id != user_id:
             ns_realty.abort(403, "You are not authorized to modify this realty listing.")
             
