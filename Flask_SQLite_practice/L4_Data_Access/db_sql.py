@@ -1,13 +1,14 @@
 import sqlite3
 import os
 from pathlib import Path
+from sqlalchemy import update
 
 from L4_Data_Access.sql.session import get_db
 from .models.user_model_orm import UserORM
 from L5_Database.database_schema import SQL_SCHEMA
 from L2_Api_Controllers.schemas.realty_model import Realty, RealtyPatch
 from L2_Api_Controllers.schemas.user_model import UserAuth, UserUpdate
-from sqlalchemy import select, insert
+from sqlalchemy import delete, select, insert
 from sqlalchemy.orm import Session
 
 
@@ -131,13 +132,22 @@ def delete_realty(realty_id: int):
 
 # user
 
-def register_user(session: Session, user_data: dict):
+def register_user_orm(session: Session, user_data: dict):
     print(f"Registering user with data: {user_data}")
-    stmt = insert(UserORM).values(**user_data).returning(UserORM)
-    result = session.execute(stmt)
-    user = result.scalar_one()
-    session.commit()
-    return user
+    try:
+        # stmt = insert(UserORM).values(**user_data).returning(UserORM)
+        # result = session.execute(stmt)
+        # user = result.scalar_one()
+        new_user = UserORM(**user_data)
+        
+        session.add(new_user)
+        session.commit()
+        
+    except Exception as e:
+        session.rollback()
+        raise ValueError(f"Error registering user: {e}")
+
+    return new_user
 
 def get_by_email_orm(session: Session, email: str):
     result = session.execute(select(UserORM).where(UserORM.email == email))
@@ -198,6 +208,12 @@ def get_user(user_id: int) -> UserAuth | None:
         db.close()
 
 
+def get_user_orm(session: Session, user_id: int) -> UserORM | None:
+    result = session.execute(select(UserORM).where(UserORM.id == user_id))
+    data = result.scalar_one_or_none()
+    return data
+
+
 def get_all_users() -> list[UserAuth]:
     db = get_db()
     try:
@@ -207,6 +223,16 @@ def get_all_users() -> list[UserAuth]:
         return [UserAuth.model_validate(dict(row)) for row in rows]
     finally:
         db.close()
+
+
+def update_user_orm(session: Session, user: UserUpdate, user_id) -> None:
+    update_data = user.model_dump(exclude_none=True)
+    result = session.execute(update(UserORM).where(UserORM.id == user_id).values(**update_data).execution_options(synchronize_session="fetch"))
+    session.commit()
+    if result.rowcount == 0:
+        raise KeyError(f"User does not exist")
+
+
 
 
 def update_user(user: UserUpdate, user_id) -> None:
@@ -227,7 +253,16 @@ def update_user(user: UserUpdate, user_id) -> None:
         db.close()
 
 
-def delete_user(user_id: int):
+def delete_user_orm(session: Session, user_id: int):
+    try:
+        result = session.execute(update(UserORM).where(UserORM.id == user_id).values(status='inactive'))
+    except Exception as e:
+        raise RuntimeError(f"Database error: {e}")
+    session.commit()
+    return result.rowcount == 1
+
+
+def delete_user_sql(user_id: int):
     db = get_db()
     try:
         cur = db.cursor()
@@ -236,3 +271,8 @@ def delete_user(user_id: int):
         return True if cur.rowcount != 0 else False
     finally:
         db.close()
+
+def get_by_email_orm(session: Session, email: str):
+    result = session.execute(select(UserORM).where(UserORM.email == email))
+    data = result.scalar_one_or_none()
+    return data

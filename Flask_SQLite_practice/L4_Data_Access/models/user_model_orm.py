@@ -1,11 +1,14 @@
-from pydantic import BaseModel, Field
-from sqlalchemy import DateTime, String, Enum, Boolean, Text, func
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy import String, Enum, Boolean, Text, func
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from datetime import datetime, timezone
-import hashlib
+from typing import List
 #from enum import Enum
-
 from .index import Base
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .realty_model_orm import RealtyORM
+
 
 class UserORM(Base):
     __tablename__ = 'user'
@@ -25,6 +28,8 @@ class UserORM(Base):
     #role: Mapped[UserRole] = mapped_column(Enum(UserRole), nullable=False)
     
     status: Mapped[str] = mapped_column(Text, default='active')
-    
+
+    realty: Mapped[List["RealtyORM"]] = relationship("RealtyORM", back_populates="user")
+
     def __repr__(self) -> str:
         return f"<User(id={self.id}, name='{self.name}', role='{self.role}')>"

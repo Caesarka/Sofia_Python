@@ -7,7 +7,7 @@ from L5_Database.database_schema import SQL_SCHEMA
 
 BASE_DIR = Path(__file__).parent.parent
 print(f"v1 BASE_DIR in db_sql.py: {BASE_DIR}")
-DB_PATH = Path(os.getenv("DB_PATH", BASE_DIR / "database.db"))
+DB_PATH = Path(os.getenv("DB_PATH", BASE_DIR / "database_sql.db"))
 print(f"v1 DB_PATH in db_sql.py: {DB_PATH}")
 
 def get_db():

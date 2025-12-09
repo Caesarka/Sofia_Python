@@ -13,7 +13,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 print(f"v2 BASE_DIR: {BASE_DIR}")
 
 # DB_PATH = BASE_DIR / "database.db"
-db_path_env = os.getenv("DB_PATH", "database.db")
+db_path_env = os.getenv("DB_PATH", "database_orm.db")
 print(f"v2 DB_PATH env variable: {db_path_env}")
 
 DB_PATH = (BASE_DIR / db_path_env).resolve()
