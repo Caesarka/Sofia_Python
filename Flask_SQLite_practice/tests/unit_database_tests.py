@@ -140,7 +140,7 @@ class DatabaseTests(unittest.TestCase):
     
         user_dict = self.user.model_dump()
         user_dict['reg_date'] = datetime.now()
-        db_sql.register_user(self.session, user_dict)
+        db_sql.register_user_orm(self.session, user_dict)
 
         
 
@@ -148,7 +148,7 @@ class DatabaseTests(unittest.TestCase):
         self.create_user()
 
         # todo: переписать get_by_email на pydantic
-        new_user = db_sql.get_by_email(self.user.email) #self.session, 
+        new_user = db_sql.get_by_email_orm(self.session, self.user.email) #self.session, 
         self.assertIsNotNone(new_user.id)
         #self.assertEqual(new_user.email, user_dict['email'])
 
@@ -163,25 +163,26 @@ class DatabaseTests(unittest.TestCase):
     def test_get_users(self):
         user = UserAuth(name="Julianna", email="my@mail.com", password="hetryi459865ruhyrkjt86", reg_date="2025-10-15T11:00:00", role="buyer", status='active')
         user1 = UserAuth(name="Dmitry", email="another@mail.com", password="trjtyjetyj56456756et", reg_date="2025-10-15T11:00:00", role="buyer", status='active')
-        db_sql.register_user(self.session, user.model_dump())
-        db_sql.register_user(self.session, user1.model_dump())
+        db_sql.register_user_orm(self.session, user.model_dump())
+        db_sql.register_user_orm(self.session, user1.model_dump())
         users = db_sql.get_all_users()
         self.assertEqual(len(users), 2)
 
 
     def test_delete_user(self):
         user = UserAuth(name="Julianna", email="my@mail.com", password="hetryi459865ruhyrkjt86", reg_date="2025-10-15T11:00:00", role="buyer", status='active')
-        userOrm = db_sql.register_user(self.session, user.model_dump())
-        db_sql.delete_user(userOrm.id)
-        inactive_user = db_sql.get_user(userOrm.id)
+        userOrm = db_sql.register_user_orm(self.session, user.model_dump())
+        user_id = userOrm.id
+        db_sql.delete_user_orm(self.session, userOrm.id)
+        inactive_user = db_sql.get_user(user_id)
         self.assertEqual(inactive_user.status, "inactive")
 
 
     def test_update_user(self):
         user = UserAuth(name="Julianna", email="my@mail.com", password="hetryi459865ruhyrkjt86", reg_date="2025-10-15T11:00:00", role="buyer", status='active')
-        userOrm = db_sql.register_user(self.session, user.model_dump())
+        userOrm = db_sql.register_user_orm(self.session, user.model_dump())
         update_user = UserUpdate(name="Julia", email="mew@mail.com", password="newpassword4353")
-        db_sql.update_user(update_user, userOrm.id)
+        db_sql.update_user_orm(self.session, update_user, userOrm.id)
         new_user = db_sql.get_user(userOrm.id)
         self.assertEqual(new_user.name, update_user.name)
         self.assertEqual(new_user.email, update_user.email)

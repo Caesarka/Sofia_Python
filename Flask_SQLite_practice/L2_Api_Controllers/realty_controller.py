@@ -6,7 +6,6 @@ from L2_Api_Controllers.realty_api_model import ns_realty, realty_model
 from .auth.jwt_utils import jwt_required
 from .auth.role_utils import role_required
 from pydantic import ValidationError
-#from L3_Business_Logic.realty_service import RealtyService
 
 from service_locator import realtyService
 
