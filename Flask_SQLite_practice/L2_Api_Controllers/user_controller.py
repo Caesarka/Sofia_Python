@@ -38,8 +38,9 @@ class Register(Resource):
 class UserList(Resource):
     @ns_user.expect(user_model)
     def get(self):
-        users = db_sql.get_all_users()
-        return [user.model_dump() for user in users], 200
+        DBSession = get_session()
+        users = UserService(DBSession).get_all_users()
+        return users, 200
 
 
 @ns_user.route("/login")
@@ -47,10 +48,10 @@ class Login(Resource):
     @ns_user.expect(auth_model)
     def post(self):
         DBSession = get_session()
-        userRequest = UserLogin.model_validate(request.json)
-        print("Login attempt for:", userRequest.email)
-        user = db_sql.get_by_email_orm(DBSession, userRequest.email)
-        if user and user.password == UserAuth.hash_password(userRequest.password):
+        user_request = UserLogin.model_validate(request.json)
+        print("Login attempt for:", user_request.email)
+        user = UserService(DBSession).get_user_by_email(user_request.email)
+        if user and user.password == UserAuth.hash_password(user_request.password):
             access_token = create_access_token({"user_id": user.id, "role": user.role})
             resp = make_response({"message": f"Welcome {user.name}"})
             resp.set_cookie(
@@ -78,37 +79,58 @@ class UserDetail(Resource):
     @jwt_required
     @ns_user.doc(responses={200: "No content"})
     def get(self, user_id):
-        try:
-            user = db_sql.get_user(user_id)
-            return user.model_dump(), 200
-        except Exception:
-            ns_user.abort(404, f"User with id={user_id} not found")
+        DBSession = get_session()
+        user_id = request.user["user_id"]
+        user = UserService(DBSession).get_user_by_id(user_id)
+        if not user:
+            return {"error": f"User with id={user_id} not found"}, 404
+        user_auth = UserAuth.model_validate(user)
+        return user_auth.model_dump(), 200
 
     @jwt_required
     @ns_user.doc(responses={200: "No content"})
     @ns_user.marshal_with(update_model)
     def put(self, user_id):
-        user = UserAuth.model_validate(request.json)
-        if user.id != user_id:
-            ns_user.abort(400, f"User id does not match")
         try:
-            db_sql.update_user_orm(user)
-            return {}, 200
-        except Exception:
-            ns_user.abort(404, f"User not found")
-
-    @jwt_required
-    @ns_user.doc()
-    def delete(self, user_id):
-        try:
-            is_deleted = db_sql.delete_user_orm(user_id)
-            if is_deleted:
-                return {'message': f'User with id {user_id} deleted'}, 200
-            else:
-                return {'message': f'User with id {user_id} not found'}, 403
+            DBSession = get_session()
+            user_id = request.user["user_id"]
         except Exception as e:
-            return {'message': str(e)}, 500
+            ns_user.abort(401, f'Invalid or missing token: {e}')
+
+        json_data = request.json
+        if not json_data:
+            ns_user.abort(400, "Missing JSON body")
+        try:
+            update_data = UserUpdate.model_validate(json_data, strict=False)
+        except ValidationError as e:
+            ns_user.abort(422, f'Invalid data: {e.errors}')
         
+        if update_data.password:
+            update_data.password = UserAuth.hash_password(update_data.password)
+        
+        try:
+            UserService(DBSession).update_user(update_data, user_id)
+        except ValueError as e:
+            ns_user.abort(409, f'Conflict data: {e}')
+        except KeyError as e:
+            ns_user.abort(404, f'User not found')
+        except Exception as e:
+            ns_user.abort(500, f'An unexcpected error occured! {e}')
+
+        return {"message": "Profile updated"}, 200
+
+#    @jwt_required
+#    @ns_user.doc()
+#    def delete(self, user_id):
+#        try:
+#            is_deleted = db_sql.delete_user_orm(user_id)
+#            if is_deleted:
+#                return {'message': f'User with id {user_id} deleted'}, 200
+#            else:
+#                return {'message': f'User with id {user_id} not found'}, 403
+#        except Exception as e:
+#            return {'message': str(e)}, 500
+#        
 
 
 @ns_user.route("/profile")
@@ -117,16 +139,11 @@ class UserProfile(Resource):
     def get(self):
         DBSession = get_session()
         user_id = request.user["user_id"]
-        user = db_sql.get_user_orm(DBSession, user_id)
+        user = UserService(DBSession).get_user_by_id(user_id)
         if not user:
             return {"error": f"User with id={user_id} not found"}, 404
         user_auth = UserAuth.model_validate(user)
         return user_auth.model_dump(), 200
-        #try:
-        #    user = db_sql.get_user_orm(DBSession, user_id)
-        #    return user.model_dump(), 200
-        #except Exception:
-        #    ns_user.abort(404, f"User with id={user_id} not found")
 
     @jwt_required
     @ns_user.expect(update_model)
@@ -150,7 +167,7 @@ class UserProfile(Resource):
             update_data.password = UserAuth.hash_password(update_data.password)
         
         try:
-            db_sql.update_user_orm(DBSession, update_data, user_id)
+            UserService(DBSession).update_user(update_data, user_id)
         except ValueError as e:
             ns_user.abort(409, f'Conflict data: {e}')
         except KeyError as e:
@@ -165,7 +182,7 @@ class UserProfile(Resource):
     def delete(self):
         DBSession = get_session()
         user_id = request.user["user_id"]
-        is_deleted = db_sql.delete_user_orm(DBSession, user_id)
+        is_deleted = UserService(DBSession).delete_user(user_id)
 
         if is_deleted:
             return {'message': f'User with id {user_id} deleted'}, 200

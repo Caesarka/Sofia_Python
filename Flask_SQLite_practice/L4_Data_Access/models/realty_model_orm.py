@@ -28,8 +28,8 @@ class RealtyORM(Base):
     # TODO datetime DateTime(timezone=True)
     created_at: Mapped[str] = mapped_column(Text, default=lambda: datetime.now(timezone.utc), server_default=func.now())
 
-    published_at: Mapped[str] = mapped_column(Text, default=lambda: datetime.now(timezone.utc), server_default=func.now())
-    
+    #published_at: Mapped[str | None] = mapped_column(Text, default=lambda: datetime.now(timezone.utc), server_default=func.now())
+    published_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True, server_default=func.now())
     status: Mapped[str] = mapped_column(Text, default='inactive')
     #role: Mapped[UserRole] = mapped_column(Enum(UserRole), nullable=False)
     
@@ -40,5 +40,5 @@ class RealtyORM(Base):
     user: Mapped["UserORM"] = relationship("UserORM", back_populates="realty")
 
     def __repr__(self) -> str:
-        return f"<Ralry(id={self.id}, title='{self.title}', address='{self.address}')>"
+        return f"<Realty(id={self.id}, title='{self.title}', address='{self.address}')>"
     
