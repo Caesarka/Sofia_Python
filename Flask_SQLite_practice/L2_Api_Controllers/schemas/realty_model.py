@@ -11,8 +11,8 @@ class Realty(BaseModel):
     address: str
     image: str | None = None
     created_at: str = Field(default_factory=lambda: datetime.now().isoformat(timespec="seconds"))
-    published_at: Optional[str] = None
-    status: int = 0
+    published_at: Optional[datetime] = None
+    status: str | None = 'inactive'
     user_id: int
     is_deleted: int = 0
     id: int | None = None

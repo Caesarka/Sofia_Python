@@ -61,17 +61,16 @@ class DatabaseTests(unittest.TestCase):
 
 # realty
     def test_create_realty(self):
-        realty = Realty(title="Koshkin dom", price=1000, city="Katcity", address="Tree street", image="some_image", created_at="", status=1, user_id=1)
-        db_sql.create_realty(realty)
-        print(realty.id)
-        new_realty = db_sql.get_realty(realty.id)
-        self.assertEqual(new_realty.id, realty.id)
-        self.assertEqual(new_realty.title, realty.title)
-
+        self.data = Realty(title="Koshkin dom", price=1000, city="Katcity", address="Tree street", image="some_image", created_at="", status="inactive", user_id=1).model_dump()
+        self.realty = db_sql.create_realty_orm(self.session, self.data)
+        print(self.realty)
+        new_realty = db_sql.get_realty_orm(self.session, self.realty.id)
+        self.assertEqual(new_realty.id, self.realty.id)
+        self.assertEqual(new_realty.title, self.realty.title)
 
     def test_get_realties(self):
-        realty = Realty(title="Koshkin dom", price=1000, city="Katcity", address="Tree street", image="some_image", created_at="", status=1, user_id=1)
-        db_sql.create_realty(realty)
+        self.data = Realty(title="Koshkin dom", price=1000, city="Katcity", address="Tree street", image="some_image", created_at="", status="inactive", user_id=1)
+        db_sql.create_realty(self.data)
         realties = db_sql.get_all_realties()
         self.assertEqual(len(realties), 1)
 
@@ -88,27 +87,27 @@ class DatabaseTests(unittest.TestCase):
 
 
     def test_delete_realty(self):
-        realty = Realty(title="Koshkin dom", price=1000, city="Katcity", address="Tree street", image="some_image", created_at="", status=1, user_id=1)
-        db_sql.create_realty(realty)
-        result = db_sql.delete_realty(realty.id)
+        self.data = Realty(title="Koshkin dom", price=1000, city="Katcity", address="Tree street", image="some_image", created_at="", status="inactive", user_id=1)
+        db_sql.create_realty(self.data)
+        result = db_sql.delete_realty(self.data.id)
         self.assertTrue(result)
         result = db_sql.delete_realty(10)
         self.assertFalse(result)
 
 
     def test_replace_realty(self):
-        realty = Realty(title="Koshkin dom", price=1000, city="Katcity", address="Tree street", image="some_image", created_at="", status=1, user_id=1)
-        db_sql.create_realty(realty)
+        self.data = Realty(title="Koshkin dom", price=1000, city="Katcity", address="Tree street", image="some_image", created_at="", status="inactive", user_id=1)
+        db_sql.create_realty(self.data)
 
-        realty.title = "Mishkin dom"
-        realty.price = 1001
-        db_sql.replace_realty(realty, realty.id)
-        replaced_realty = db_sql.get_realty(realty.id)
+        self.data.title = "Mishkin dom"
+        self.data.price = 1001
+        db_sql.replace_realty(self.data, self.data.id)
+        replaced_realty = db_sql.get_realty(self.data.id)
         self.assertEqual(replaced_realty.title, "Mishkin dom")
         self.assertEqual(replaced_realty.price, 1001)
 
     def test_patch_realty(self):
-        realty = Realty(title="Koshkin dom", price=1000, city="Katcity", address="Tree street", image="some_image", created_at="", status=1, user_id=1)
+        realty = Realty(title="Koshkin dom", price=1000, city="Katcity", address="Tree street", image="some_image", created_at="", status="inactive", user_id=1)
         db_sql.create_realty(realty)
 
         patch_realty = RealtyPatch(title="Mishkin dom", price=1001, city="Katcity", address="Tree street", image="some_image")
@@ -148,14 +147,14 @@ class DatabaseTests(unittest.TestCase):
         self.create_user()
 
         # todo: переписать get_by_email на pydantic
-        new_user = db_sql.get_by_email_orm(self.session, self.user.email) #self.session, 
+        new_user = db_sql.get_user_by_email_orm(self.session, self.user.email) #self.session, 
         self.assertIsNotNone(new_user.id)
         #self.assertEqual(new_user.email, user_dict['email'])
 
 
     def test_get_user_by_email(self):
         self.create_user() 
-        get_user = db_sql.get_by_email(self.user.email) #self.session, 
+        get_user = db_sql.get_by_email_sql(self.user.email) #self.session, 
         self.assertEqual(get_user.email, self.user.email)
         self.assertNotEqual(get_user, "wrong@email.com")
 
@@ -165,7 +164,7 @@ class DatabaseTests(unittest.TestCase):
         user1 = UserAuth(name="Dmitry", email="another@mail.com", password="trjtyjetyj56456756et", reg_date="2025-10-15T11:00:00", role="buyer", status='active')
         db_sql.register_user_orm(self.session, user.model_dump())
         db_sql.register_user_orm(self.session, user1.model_dump())
-        users = db_sql.get_all_users()
+        users = db_sql.get_all_users_sql()
         self.assertEqual(len(users), 2)
 
 
@@ -174,7 +173,7 @@ class DatabaseTests(unittest.TestCase):
         userOrm = db_sql.register_user_orm(self.session, user.model_dump())
         user_id = userOrm.id
         db_sql.delete_user_orm(self.session, userOrm.id)
-        inactive_user = db_sql.get_user(user_id)
+        inactive_user = db_sql.get_user_sql(user_id)
         self.assertEqual(inactive_user.status, "inactive")
 
 
@@ -183,7 +182,7 @@ class DatabaseTests(unittest.TestCase):
         userOrm = db_sql.register_user_orm(self.session, user.model_dump())
         update_user = UserUpdate(name="Julia", email="mew@mail.com", password="newpassword4353")
         db_sql.update_user_orm(self.session, update_user, userOrm.id)
-        new_user = db_sql.get_user(userOrm.id)
+        new_user = db_sql.get_user_sql(userOrm.id)
         self.assertEqual(new_user.name, update_user.name)
         self.assertEqual(new_user.email, update_user.email)
         update_user.name = "Anna"
