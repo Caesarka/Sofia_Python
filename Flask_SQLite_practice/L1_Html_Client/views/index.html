@@ -26,7 +26,7 @@
           card.className = 'card';
           card.innerHTML = `
           <div class="card-body">
-            <img src="${item.image}" alt="${item.title}">
+            <img src="${item.image ?? 'static/default.jpg'}" alt="${item.title}">
             <div class="card-title">${item.title}</div>
             <div class="card-price">${item.price}</div>
             <div class="card-city">${item.city}</div>
