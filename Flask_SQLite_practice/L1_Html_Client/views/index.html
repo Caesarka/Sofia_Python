@@ -1,73 +1,41 @@
-<!-- ... тот же head ... -->
+<html>
+<head>
+  <h1>Realty Listings (SSR/CSR)</h1>
+  <link rel="stylesheet" href="../static/css/styles.css">
+</head>
 <body>
-  <main class="container my-4">
-    <h1 class="mb-4">Realty Listings (SSR/CSR)</h1>
+  <div>
+    <button id="btn-ssr">Server Render (SSR)</button>
+    <button id="btn-csr">Client Render (CSR)</button>
+    <div id="cards-container"></div>
+  </div>
 
-    <div class="mb-3">
-      <button id="btn-ssr" class="btn btn-primary">Server Render (SSR)</button>
-      <button id="btn-csr" class="btn btn-outline-primary">Client Render (CSR)</button>
-    </div>
+  <script>
+  const btnSSR = document.getElementById('btn-ssr');
+  const btnCSR = document.getElementById('btn-csr');
 
-    <!-- SSR блок -->
-    <div id="ssr-cards" class="d-flex flex-wrap">
-      {% for item in cards %}
-      <div class="card m-2" style="width: 18rem;">
-        <img src="{{ url_for('static', filename='{{ item.id }}.jpg') }}" class="card-img-top" alt="">
-        <div class="card-body">
-          <h5 class="card-title">{{ item.title }}</h5>
-          <p>{{ item.city }}</p>
-          <p>{{ item.price }}</p>
-        </div>
-      </div>
-      {% endfor %}
-    </div>
-
-    <!-- CSR блок -->
-    <div id="csr-cards" class="d-flex flex-wrap" style="display:none"></div>
-  </main>
-
-<script>
-const btnSSR = document.getElementById('btn-ssr');
-const btnCSR = document.getElementById('btn-csr');
-const ssrCards = document.getElementById('ssr-cards');
-const csrCards = document.getElementById('csr-cards');
-
-btnSSR.addEventListener('click', ()=>{
-  ssrCards.style.display = 'flex';
-  csrCards.style.display = 'none';
-  btnSSR.classList.replace('btn-outline-primary','btn-primary');
-  btnCSR.classList.replace('btn-primary','btn-outline-primary');
-});
-
-btnCSR.addEventListener('click', ()=>{
-  ssrCards.style.display = 'none';
-  csrCards.style.display = 'flex';
-  btnCSR.classList.replace('btn-outline-primary','btn-primary');
-  btnSSR.classList.replace('btn-primary','btn-outline-primary');
-
-  fetch('/api/realty/')
-    .then(r=>r.json())
-    .then(data=>{
-      csrCards.innerHTML = '';
-      data.forEach(item=>{
-        const card = document.createElement('div');
-        card.className = 'card m-2';
-        card.style.width = '18rem';
-
-        // Собираем URL картинки: /static/images/realty/имяфайла
-        const imgUrl = `/static/images/realty/${item.image}`;
-
-        card.innerHTML = `
-          <img src="${imgUrl}" class="card-img-top" alt="">
+  btnCSR.addEventListener('click', ()=>{
+    fetch('/api/realty/')
+      .then(r=>r.json())
+      .then(data=>{
+        const container = document.getElementById("cards-container");
+        container.innerHTML = '';
+        console.log(data);
+        data.forEach(item=>{
+          const card = document.createElement('div');
+          card.className = 'card';
+          card.innerHTML = `
           <div class="card-body">
-            <h5 class="card-title">${item.title}</h5>
-            <p>${item.city}</p>
-            <p>${item.price}</p>
-          </div>`;
-        csrCards.appendChild(card);
+            <img src="${item.image}" alt="${item.title}">
+            <div class="card-title">${item.title}</div>
+            <div class="card-price">${item.price}</div>
+            <div class="card-city">${item.city}</div>
+          </div>
+          `;
+          container.appendChild(card);
+        });
       });
-    });
-});
-</script>
+  });
+  </script>
 </body>
 </html>

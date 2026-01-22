@@ -13,25 +13,25 @@ import L4_Data_Access.db_sql as db_sql
 
 @ns_realty.route("/")
 class RealtyList(Resource):
-    @jwt_required
-    @role_required(['realtor', 'admin', 'buyer'])
+    #@jwt_required
+    #@role_required(['realtor', 'admin', 'buyer'])
     @ns_realty.marshal_list_with(realty_model)
     def get(self):
         DBSession = get_session()
-        user = request.user
-        user_id = user["user_id"]
-        user_role = user["role"]
+        #user = request.user
+        #user_id = user["user_id"]
+        #user_role = user["role"]
 
-        if user_role == 'buyer':
-            realties = RealtyService(DBSession).get_all_active_realties()
+        #if user_role == 'buyer':
+        #    realties = RealtyService(DBSession).get_all_active_realties()
 
-        elif user_role == 'realtor':
-            realties = RealtyService(DBSession).get_my_realties(user_id)
+        #elif user_role == 'realtor':
+        #    realties = RealtyService(DBSession).get_my_realties(user_id)
 
-        else:
-            realties = db_sql.get_all_realties()
-
-        return [r.model_dump() for r in realties], 200
+        #else:
+        #    realties = db_sql.get_all_realties()
+        realties = RealtyService(DBSession).get_all_active_realties()
+        return realties, 200
     
     @jwt_required
     @role_required(['realtor', 'admin'])
