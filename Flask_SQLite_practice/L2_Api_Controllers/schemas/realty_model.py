@@ -1,4 +1,4 @@
-from datetime import datetime
+﻿from datetime import datetime
 from pydantic import BaseModel, Field
 from typing import Optional
 
@@ -9,7 +9,7 @@ class Realty(BaseModel):
     price: float
     city: str
     address: str
-    image: str |None = None
+    image: str | None = None
     created_at: str = Field(default_factory=lambda: datetime.now().isoformat(timespec="seconds"))
     published_at: Optional[datetime] = None
     status: str | None = 'inactive'
