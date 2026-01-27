@@ -1,41 +1,13 @@
+<!doctype html>
 <html>
-<head>
-  <h1>Realty Listings (SSR/CSR)</h1>
-  <link rel="stylesheet" href="../static/css/styles.css">
-</head>
-<body>
-  <div>
-    <button id="btn-ssr">Server Render (SSR)</button>
-    <button id="btn-csr">Client Render (CSR)</button>
-    <div id="cards-container"></div>
-  </div>
+  <body>
+      <h1 class="mb-4">Realty Listings (SSR/CSR)</h1>
 
-  <script>
-  const btnSSR = document.getElementById('btn-ssr');
-  const btnCSR = document.getElementById('btn-csr');
+      <div class="mb-3">
+        <a href="ssr.html" class="button" target="_self">Server Render (SSR)</a>
+        <a href="static/csr.html" class="button" target="_self">Client Render (CSR)</a>
+      </div>
 
-  btnCSR.addEventListener('click', ()=>{
-    fetch('/api/realty/')
-      .then(r=>r.json())
-      .then(data=>{
-        const container = document.getElementById("cards-container");
-        container.innerHTML = '';
-        console.log(data);
-        data.forEach(item=>{
-          const card = document.createElement('div');
-          card.className = 'card';
-          card.innerHTML = `
-          <div class="card-body">
-            <img src="${item.image ?? 'static/default.jpg'}" alt="${item.title}">
-            <div class="card-title">${item.title}</div>
-            <div class="card-price">${item.price}</div>
-            <div class="card-city">${item.city}</div>
-          </div>
-          `;
-          container.appendChild(card);
-        });
-      });
-  });
-  </script>
-</body>
+  </body>
+  
 </html>
