@@ -16,7 +16,7 @@ const realty = ref([])
 const loading = ref(true)
 
 onMounted(async () => {
-  const response = await fetch('http://127.0.0.1:5000/api/realty/1')
+  const response = await fetch('/api/realty/1')
   console.log('response', response)
   
   realty.value = await response.json()

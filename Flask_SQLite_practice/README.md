@@ -16,6 +16,15 @@ docker compose down
 docker compose build
 docker compose run --rm acceptance-tests
 
+# vanilla js or Jinja/Flask SSR
+(F5) # start python server at :5000
+http://localhost:5000/assets/csr.html
+http://localhost:5000/ssr.html
+
+# vue
+(F5) # start python server at :5000
+cd frontend && vite # start vue dev server
+http://localhost:5173/ # open vue dev server
 
 ### 0. Собрать структуру проеткта на бэкенд (входной файл, папки, бд), развернуть это внутри вирт. откружения
 
