@@ -18,7 +18,7 @@
     <div id="ssr-cards" class="d-flex flex-wrap">
       {% for item in cards %}
         <div class="card m-2" style="width: 18rem;">
-          <img src="{{ url_for('static', filename='images/realty/' ~ item.image) }}" class="card-img-top" alt="">
+          <img src="{{ url_for('assets', filename='images/realty/' ~ item.image) }}" class="card-img-top" alt="">
           <div class="card-body">
             <h5 class="card-title">{{ item.title }}</h5>
             <p>{{ item.city }}</p>

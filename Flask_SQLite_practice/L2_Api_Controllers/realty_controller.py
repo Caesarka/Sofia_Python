@@ -10,7 +10,6 @@ from .auth.role_utils import role_required
 from pydantic import ValidationError
 import L4_Data_Access.db_sql as db_sql
 
-
 @ns_realty.route("/")
 class RealtyList(Resource):
     #@jwt_required
