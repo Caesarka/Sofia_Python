@@ -1,5 +1,4 @@
 ﻿from flask import Flask, render_template, g
-from flask_cors import CORS
 from flask_restx import Api
 from L4_Data_Access.sql.session import init_db_if_needed_v1
 from L2_Api_Controllers.realty_api_model import ns_realty
@@ -11,7 +10,6 @@ init_db_if_needed_v1()
 init_db_if_needed_v2()
 
 app = Flask(__name__, template_folder='L1_Html_Client/views', static_folder='L1_Html_Client/static')
-CORS(app)
 app.secret_key = "supersecret"
 
 @app.route('/')
