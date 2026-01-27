@@ -1,6 +1,6 @@
 {% macro card(item) %}
 <div class="card m-2" style="width: 18rem;">
-    <img src="{{ url_for('static', filename=item.id ~ '.jpg') }}" class="card-img-top" alt="{{ item.title }}">
+    <img src="{{ url_for('assets', filename=item.id ~ '.jpg') }}" class="card-img-top" alt="{{ item.title }}">
     <div class="card-body">
         <h5 class="card-title">{{ item.address }}</h5>
         <p class="card-city">{{ item.city }}</p>

@@ -4,7 +4,7 @@ $.ajax('/api/realty')
   })
 
 function cardRender ({title, price, city, id, address}, container) {
-  const image = `/static/${id}.jpg`;
+  const image = `/assets/${id}.jpg`;
   const bodyCard = `
   <div id="card-template" class="card" style="width: 18rem;">
     <img src="${ image }" class="card-img-top" alt="${ title }">
