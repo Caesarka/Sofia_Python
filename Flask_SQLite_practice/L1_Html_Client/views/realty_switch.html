@@ -50,13 +50,13 @@ document.getElementById('btn-csr').addEventListener('click', ()=>{
       data.forEach(item=>{
         const card = document.createElement('div');
         card.className = 'card m-2';
-        card.style.width = '18rem';
         card.innerHTML = `
           <div class="card-body">
             <h5 class="card-title">${item.title}</h5>
             <p>${item.city}</p>
             <p>${item.price}</p>
-          </div>`;
+          </div>`;card.style.width = '18rem';
+        
         container.appendChild(card);
       });
     });
