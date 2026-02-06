@@ -1,7 +1,8 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import FirstPage from '../pages/FirstPage.vue'
-import SecondPage from '../pages/SecondPage.vue'
-import Realty from '../pages/Realty.vue'
+import FirstPage from '@/pages/FirstPage.vue'
+import SecondPage from '@/pages/SecondPage.vue'
+import Realty from '@/pages/Realty.vue'
+import RealtyListPage from '@/pages/RealtyListPage.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -20,6 +21,11 @@ const router = createRouter({
       path: '/realty',
       name: 'realty',
       component: Realty,
+    },
+    {
+      path: '/realty-list',
+      name: 'realty_list',
+      component: RealtyListPage,
     }
   ],
 })
