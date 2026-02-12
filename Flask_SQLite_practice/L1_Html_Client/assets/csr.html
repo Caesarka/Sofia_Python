@@ -8,33 +8,95 @@
     <a href="/">Back to root</a>
   </div>
 
-  <div>
-    <div id="cards-container"></div>
+  <div id='nav'>
+    <a href="#" class="nav-link">###</a>
+    <a href="#asd" class="nav-link">#asd</a>
+    <a href="/realties" class="nav-link">Realties</a>
+    <a href="/profile" class="nav-link">Profile</a>
+    <a href="/about" class="nav-link">About</a>
+    <a href="/login" class="nav-link">Login</a>
+    <a href="/signup" class="nav-link">Signup</a>
+  </div>
+
+  <div id='pages'>
+    <div id='page_realties'>
+      <div id="cards-container"></div>
+    </div>
+    <div id='page_profile'>
+      page_profile
+    </div>
+    <div id='page_about'>
+      page_about
+    </div>
+    <div id='page_login'>
+      page_login
+    </div>
+    <div id='page_signup'>
+      page_signup
+    </div>
   </div>
 
   <script>
-  document.addEventListener('DOMContentLoaded', (event) => {
-    fetch('/api/realty/')
-      .then(r=>r.json())
-      .then(data=>{
-        const container = document.getElementById("cards-container");
-        container.innerHTML = '';
-        console.log(data);
-        data.forEach(item=>{
-          const card = document.createElement('div');
-          card.className = 'card';
-          card.innerHTML = `
-          <div class="card-body">
-            <img src="${item.image ?? 'assets/default.jpg'}" alt="${item.title}">
-            <div class="card-title">${item.title}</div>
-            <div class="card-price">${item.price}</div>
-            <div class="card-city">${item.city}</div>
-          </div>
-          `;
-          container.appendChild(card);
+    function render(url) {
+      console.log('!! render', url)
+      console.log('!! window.location', window.location)
+      console.log('!! window.location.pathname', window.location.pathname)
+      document.querySelectorAll('#pages > div').forEach(page=>{
+        page.style.display = 'none';
+      });
+      try {
+        document.querySelector('#pages > div#page_' + (url ?? window.location.pathname).replace(/^\/+/, '').toLowerCase())
+          .style.display = 'block';
+      } catch(e) {
+        console.error('!! render error', e)
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', (event) => {
+      console.log('!! DOMContentLoaded')
+      render();
+      document.querySelectorAll('a').forEach(a => {
+        console.log('!! querySelectorAll A', a)
+        a.addEventListener('click', e => {
+          console.log('!! A click', window.location)
+
+          const link = e.target.closest('a');
+
+          if (!link) return;
+          if (link.target === '_blank') return;
+          if (link.hasAttribute('download')) return;
+          if (link.origin !== location.origin) return; // external link
+
+          e.preventDefault();
+
+          const url = link.pathname + link.search + link.hash;
+          history.pushState({}, '', url);
+
+          render(url);
         });
       });
-  });
+      
+      fetch('/api/realty/')
+        .then(r=>r.json())
+        .then(data=>{
+          const container = document.getElementById("cards-container");
+          container.innerHTML = '';
+          console.log(data);
+          data.forEach(item=>{
+            const card = document.createElement('div');
+            card.className = 'card';
+            card.innerHTML = `
+            <div class="card-body">
+              <img src="${item.image ?? 'assets/default.jpg'}" alt="${item.title}">
+              <div class="card-title">${item.title}</div>
+              <div class="card-price">${item.price}</div>
+              <div class="card-city">${item.city}</div>
+            </div>
+            `;
+            container.appendChild(card);
+          });
+        });
+    });
   </script>
 </body>
 </html>
