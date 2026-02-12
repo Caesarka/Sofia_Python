@@ -17,8 +17,8 @@ WORKDIR /workdir
 COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 COPY . /workdir
-COPY --from=node /workdir/dist/index.html ./L1_Html_Client/static/vue.html
-COPY --from=node /workdir/dist/assets ./L1_Html_Client/static/
+COPY --from=node /workdir/dist/index.html ./L1_Html_Client/assets/vue.html
+COPY --from=node /workdir/dist/assets ./L1_Html_Client/assets/
 
 FROM py AS test
 RUN python -m unittest discover -s tests -p "unit_*.py"
