@@ -1,42 +1,142 @@
 ﻿<html>
 <head>
-  <h1>Realty Listings (SSR/CSR)</h1>
-  <link rel="stylesheet" href="./css/styles.css">
+  <h1>Realty Listings (CSR)</h1>
+  <link rel="stylesheet" href="/assets/css/styles.css">
+  <style>
+    body {
+      /* Center the form on the page */
+      text-align: center;
+    }
+
+    .page {
+      display: none;
+    }
+
+    form {
+      display: inline-block;
+      /* Form outline */
+      padding: 1em;
+      border: 1px solid #cccccc;
+      border-radius: 1em;
+    }
+
+    input,
+    textarea {
+      /* To make sure that all text fields have the same font settings
+        By default, text areas have a monospace font */
+      font: 1em sans-serif;
+      /* Uniform text field size */
+      width: 300px;
+      box-sizing: border-box;
+      /* Match form field borders */
+      border: 1px solid #999999;
+    }
+
+    input:focus,
+    textarea:focus {
+      /* Set the outline width and style */
+      outline-style: solid;
+      /* To give a little highlight on active elements */
+      outline-color: black;
+    }
+
+    textarea {
+      /* Align multiline text fields with their labels */
+      vertical-align: top;
+      /* Provide space to type some text */
+      height: 5em;
+    }
+
+    .button {
+      /* Align buttons with the text fields */
+      padding-left: 90px; /* same size as the label elements */
+    }
+
+    button {
+      /* This extra margin represent roughly the same space as the space
+        between the labels and their text fields */
+      margin-left: 0.5em;
+    }
+  </style>
 </head>
 <body>
   <div>
-    <a href="/">Back to root</a>
+    <a href="/" data-nav>Back to root</a>
   </div>
 
   <div id='nav'>
     <a href="#" class="nav-link">###</a>
     <a href="#asd" class="nav-link">#asd</a>
     <a href="/realties" class="nav-link">Realties</a>
-    <a href="/profile" class="nav-link">Profile</a>
+    <a href="/profile" id="nav_profile" class="nav-link">Profile</a>
     <a href="/about" class="nav-link">About</a>
     <a href="/login" class="nav-link">Login</a>
-    <a href="/signup" class="nav-link">Signup</a>
+    <a href="/register" class="nav-link">Register</a>
+    <a href="/logout" class="nav-link">Logout</a>
   </div>
 
   <div id='pages'>
-    <div id='page_realties'>
+    <div id='page_realties' class='page'>
       <div id="cards-container"></div>
     </div>
-    <div id='page_profile'>
-      page_profile
+    <div id='page_profile' class='page'>
+      <div>
+        <h3>User Profile</h3>
+        <p><strong>Name:</strong> <span id="profile_name"></span></p>
+        <p><strong>Email:</strong> <span id="profile_email"></span></p>
+        <p><strong>Role:</strong> <span id="profile_role"></span></p>
+        <p><strong>Status:</strong> <span id="profile_status"></span></p>
+        <p><strong>Created At:</strong> <span id="profile_created_at"></span></p>
+      </div>
     </div>
-    <div id='page_about'>
-      page_about
+    <div id='page_about' class='page'>
     </div>
-    <div id='page_login'>
-      page_login
+    <div id='page_login' class='page'>
+      <div>
+        <form action="/login" method="post">
+          <h3>Login Form</h3>
+          <p>
+            <label for="email">Email:</label>
+            <input type="email" id="email" name="email" placeholder="Email" value="realtor@real">
+          </p>
+          <p>
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password" placeholder="Password" value="realtor@real">
+          </p>
+          <button type="submit" id="login_submit">Login</button>
+        </form>
+      </div>
     </div>
-    <div id='page_signup'>
-      page_signup
+    <div id='page_register' class='page'>
+      <div>
+        <form>
+          <h3>Register Form</h3>
+          <p>
+            <div id="register_error" style="color:red; margin-bottom:10px;"></div>
+            <label for="name">Name:</label>
+            <input type="text" id="register_name" name="name" placeholder="Name" required>
+          </p>
+            <label for="email">Email:</label>
+            <input type="email" id="register_email" name="email" placeholder="Email" required>
+          </p>
+          <p>
+            <label for="password">Password:</label>
+            <input type="password" id="register_password" name="password" placeholder="Password" required>
+          </p>
+          <button type="submit" id="register_submit">Register</button>
+        </form>
+      </div>
+    </div>
+    <div id='page_logout'>
+      <button id="logout">Logout</button>
     </div>
   </div>
 
   <script>
+  function isValidEmail(email) {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  }
+
     function render(url) {
       console.log('!! render', url)
       console.log('!! window.location', window.location)
@@ -45,11 +145,104 @@
         page.style.display = 'none';
       });
       try {
-        document.querySelector('#pages > div#page_' + (url ?? window.location.pathname).replace(/^\/+/, '').toLowerCase())
+        const path = (url ?? window.location.pathname).replace(/^\/+/, '').toLowerCase();
+        document.querySelector('#pages > div#page_' + path)
           .style.display = 'block';
+        if (path === 'profile') {
+          loadProfile();
+        }
+        if (path === 'realty') {
+          // loadRealties();
+        }
       } catch(e) {
-        console.error('!! render error', e)
+        console.error('!! render error', e);
       }
+    }
+
+    async function loadProfile() {
+      try {
+        const response = await fetch('/api/user/profile', {
+          method: 'GET',
+          credentials: 'include'
+        });
+        if (response.status === 401) {
+          render('/login');
+          return;
+        }
+        const data = await response.json();
+        console.log('Profile data', data);
+        document.getElementById('profile_name').textContent = data.name;
+        document.getElementById('profile_email').textContent = data.email;
+        document.getElementById('profile_role').textContent = data.role;
+        document.getElementById('profile_status').textContent = data.status;
+        document.getElementById('profile_created_at').textContent = new Date(data.created_at).toLocaleDateString();
+      } catch(e) {
+        console.error('!! loadProfile error', e);
+      }
+    }
+
+    async function register(e) {
+      e.preventDefault();
+      const errorBox = document.getElementById('register_error');
+      errorBox.textContent = '';
+      const name = document.getElementById('register_name').value.trim();
+      const email = document.getElementById('register_email').value;
+      const password = document.getElementById('register_password').value.trim();
+
+      if (!isValidEmail(email)) {
+        errorBox.textContent = 'Invalid email address';
+        return;
+      }
+
+      if (!name || !password) {
+        errorBox.textContent = 'Name and password are required';
+        return;
+      }
+
+      try {
+        const response = await fetch('/api/user/register', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            name: name,
+            email: email,
+            password: password,
+            role: 'user'  //!!!!! DO IT
+          })
+        });
+
+        if (response.status === 405) {
+          const data = await response.json();
+          errorBox.textContent = data.message || 'User already exists';
+          return;
+        }
+
+        if (response.status === 422) {
+          errorBox.textContent = 'Invalid email or password';
+          return;
+        }
+
+        if (!response.ok) {
+          errorBox.textContent = 'Registration failed';
+          return;
+        }
+
+        navigateTo('/login');
+        //window.location.replace('/realties');
+
+      } catch(e) {
+        console.error('!! register error', e);
+      }
+
+
+    }
+    
+    function navigateTo(url) {
+      console.log('!! navigateTo', url);
+      history.pushState({}, '', url);
+      render(url);
     }
 
     document.addEventListener('DOMContentLoaded', (event) => {
@@ -63,19 +256,46 @@
           const link = e.target.closest('a');
 
           if (!link) return;
-          if (link.target === '_blank') return;
+          if (link.target == '_blank') return;
+          if (link.hasAttribute('data-nav')) return;
           if (link.hasAttribute('download')) return;
-          if (link.origin !== location.origin) return; // external link
+          if (link.origin != location.origin) return; // external link
 
           e.preventDefault();
 
           const url = link.pathname + link.search + link.hash;
-          history.pushState({}, '', url);
-
-          render(url);
+          navigateTo(url);
         });
       });
       
+      document.getElementById('login_submit').addEventListener('click', async e => {
+        console.log('!! login_submit click')
+        e.preventDefault();
+        
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+        console.log('Login attempt', { email, password });
+        await fetch('/api/user/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ email, password })
+        })
+        console.log('Login response received');
+        navigateTo('/realties');
+      });
+
+      document.getElementById('register_submit').addEventListener('click', e => register(e));
+
+      document.getElementById('logout').addEventListener('click', async e => {
+        e.preventDefault();
+        await fetch('/api/user/logout', {
+          method: 'POST'
+        });
+        navigateTo('/login');
+      });
+
       fetch('/api/realty/')
         .then(r=>r.json())
         .then(data=>{
@@ -86,7 +306,7 @@
             const card = document.createElement('div');
             card.className = 'card';
             card.innerHTML = `
-            <div class="card-body">
+            <div class="card-body" data-id="${item.id}">
               <img src="${item.image ?? 'assets/default.jpg'}" alt="${item.title}">
               <div class="card-title">${item.title}</div>
               <div class="card-price">${item.price}</div>
@@ -99,4 +319,7 @@
     });
   </script>
 </body>
+
+
 </html>
+
