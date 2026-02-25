@@ -130,7 +130,7 @@ class DatabaseTests(unittest.TestCase):
     def create_user(self):
         self.user = UserCreate(
             name = f"Julianna + {str(uuid.uuid4())}",
-            email = f"my@mail.com + {str(uuid.uuid4())}",
+            email = f"my{str(uuid.uuid4())}@mail.com",
             password = "hetryi459865ruhyrkjt86", 
             reg_date = "10.15.2025.11:00AM", 
             role = "buyer", 
