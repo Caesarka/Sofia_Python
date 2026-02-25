@@ -1,4 +1,4 @@
-﻿from flask import Flask, render_template, g
+﻿from flask import Flask, render_template, g, send_from_directory
 from flask_restx import Api
 from L4_Data_Access.sql.session import init_db_if_needed_v1
 from L2_Api_Controllers.realty_api_model import ns_realty
@@ -16,6 +16,10 @@ app.secret_key = "supersecret"
 def index():
     return render_template('index.html')
 
+#@app.route('/login', methods=['POST'])
+#def testPostLogin():
+#    return 'hahaha'
+
 @app.route('/ssr.html')
 def ssr():
     return render_template('ssr.html')
@@ -24,6 +28,7 @@ api = Api(app, title="My API", doc="/doc/")
 api.add_namespace(ns_realty, path='/api/realty')
 api.add_namespace(ns_user, path='/api/user')
 
+
 #@app.before_request
 #def create_session_db():
 #    get_session()
@@ -31,6 +36,14 @@ api.add_namespace(ns_user, path='/api/user')
 #@app.teardown_request
 #def teardown_db(exception=None):
 #    close_db_session(exception)
+
+# The fallback route
+@app.route("/<path:path>")
+def fallback(path):
+    # Log the path or handle it as needed
+    print(f"Fallback route triggered for path: {path}")
+    # For a SPA, you might return the index.html file
+    return send_from_directory(app.static_folder, "csr.html")
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)
