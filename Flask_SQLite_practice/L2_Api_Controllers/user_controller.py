@@ -1,4 +1,4 @@
-﻿from sqlite3 import IntegrityError
+﻿from sqlalchemy.exc import IntegrityError
 from flask_restx import Resource
 from flask import jsonify, request, make_response
 from L4_Data_Access import db_sql
@@ -21,9 +21,13 @@ class Register(Resource):
                 return {"message": "Missing JSON body"}, 400
             try:
                 user_create = UserService(DBSession).register_user(user_data)
+            
+            except IntegrityError as e:
+                print("IntegrityError:", e)
+                return {"message": "User with this email already exists"}, 405
 
             except ValidationError as e:
-                return {"message": "Invalid imput", "errors": e.errors()}, 422
+                return {"message": "Invalid input", "errors": e.errors()}, 422
 
             return user_create, 201
     

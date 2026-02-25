@@ -1,4 +1,4 @@
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, EmailStr
 from datetime import datetime
 import hashlib
 #from enum import Enum
@@ -49,6 +49,6 @@ class UserCreate(BaseModel):
     
     id: int | None = None
     name: str | None = None
-    email: str | None = None
+    email: EmailStr | None = None
     password: str | None = None
     role: str | None = None
