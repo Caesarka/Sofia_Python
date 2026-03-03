@@ -43,11 +43,13 @@ class RealtyService:
         return realties
 
     def get_my_realties(self, user_id: int, status: str | None = None, is_deleted: bool | None = None):
-        filters = [
-            RealtyORM.user_id == user_id,
-            RealtyORM.status == status if status is not None else status == 'inactive',
-            RealtyORM.is_deleted == is_deleted if is_deleted is not None else False
-        ]
+        filters = [RealtyORM.user_id == user_id]
+
+        if status is not None:
+            filters.append(RealtyORM.status == status)
+        if is_deleted is not None:
+            filters.append(RealtyORM.is_deleted == is_deleted)
+
         realties = db_sql.get_my_active_realties_orm(self.DBSession, user_id, filters)
         return realties
     

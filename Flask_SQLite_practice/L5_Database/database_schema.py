@@ -20,8 +20,8 @@ CREATE TABLE IF NOT EXISTS user (
   email TEXT UNIQUE NOT NULL,
   password TEXT NOT NULL,
   reg_date TEXT DEFAULT CURRENT_TIMESTAMP NOT NULL,
-  role TEXT NOT NULL,
-  status TEXT NOT NULL
+  role TEXT NOT NULL CHECK(role IN ('admin', 'buyer', 'realtor')),
+  status TEXT NOT NULL CHECK(status IN ('active','inactive'))
 );
 
 CREATE TABLE IF NOT EXISTS favorite (
