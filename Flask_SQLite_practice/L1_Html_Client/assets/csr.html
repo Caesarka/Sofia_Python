@@ -1,6 +1,5 @@
 ﻿<html>
 <head>
-  <h1>Realty Listings (CSR)</h1>
   <link rel="stylesheet" href="/assets/css/styles.css">
   <style>
     body {
@@ -20,7 +19,9 @@
       border-radius: 1em;
     }
 
-    input,
+    input[type="text"],
+    input[type="email"],
+    input[type="password"],
     textarea {
       /* To make sure that all text fields have the same font settings
         By default, text areas have a monospace font */
@@ -31,6 +32,7 @@
       /* Match form field borders */
       border: 1px solid #999999;
     }
+
 
     input:focus,
     textarea:focus {
@@ -57,9 +59,22 @@
         between the labels and their text fields */
       margin-left: 0.5em;
     }
+
+
+    .radio {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+
+    fieldset {
+      border: none;
+      padding: 0;
+    }
   </style>
 </head>
 <body>
+  <h1>Realty Listings (CSR)</h1>
   <div>
     <a href="/" data-nav>Back to root</a>
   </div>
@@ -77,7 +92,7 @@
 
   <div id='pages'>
     <div id='page_realties' class='page'>
-      <div id="cards-container"></div>
+      <div id="cards-container" class="cards-container"></div>
     </div>
     <div id='page_profile' class='page'>
       <div>
@@ -88,7 +103,15 @@
         <p><strong>Status:</strong> <span id="profile_status"></span></p>
         <p><strong>Created At:</strong> <span id="profile_created_at"></span></p>
       </div>
+      <!-- Realtor-only section -->
+      <div id="realtor_section" style="display:none; margin-top:20px;">
+        <h4>My listings</h4>
+        <div id="realtor_listings_container" class="cards-container"></div>
+      </div>
+
     </div>
+
+     
     <div id='page_about' class='page'>
     </div>
     <div id='page_login' class='page'>
@@ -107,26 +130,47 @@
         </form>
       </div>
     </div>
+
     <div id='page_register' class='page'>
       <div>
-        <form>
+        <form id="register-form">
           <h3>Register Form</h3>
-          <p>
-            <div id="register_error" style="color:red; margin-bottom:10px;"></div>
-            <label for="name">Name:</label>
+          <div id="register_error" style="color:red; margin-bottom:10px;"></div>
+
+          <div class="form-group">
+            <label for="register_name">Name:</label>
             <input type="text" id="register_name" name="name" placeholder="Name" required>
-          </p>
-            <label for="email">Email:</label>
+          </div>
+
+          <div class="form-group">
+            <label for="register_email">Email:</label>
             <input type="email" id="register_email" name="email" placeholder="Email" required>
-          </p>
-          <p>
-            <label for="password">Password:</label>
+          </div>
+        
+          <div class="form-group">
+            <label for="register_password">Password:</label>
             <input type="password" id="register_password" name="password" placeholder="Password" required>
-          </p>
+          </div>
+
+          <fieldset class="form-group">
+            <legend>Select your account type</legend>
+          
+            <label class="radio">
+              <input type="radio" id="role_buyer" name="role" value="buyer" required>
+              Buyer
+            </label>
+
+            <label class="radio">
+              <input type="radio" id="role_realtor" name="role" value="realtor">
+              Realtor
+            </label>
+          </fieldset>
+
           <button type="submit" id="register_submit">Register</button>
         </form>
       </div>
     </div>
+
     <div id='page_logout'>
       <button id="logout">Logout</button>
     </div>
@@ -176,8 +220,50 @@
         document.getElementById('profile_role').textContent = data.role;
         document.getElementById('profile_status').textContent = data.status;
         document.getElementById('profile_created_at').textContent = new Date(data.created_at).toLocaleDateString();
+        if (data.role === "realtor") {
+          document.getElementById("realtor_section").style.display = 'block';
+          loadRealties();
+        }
       } catch(e) {
         console.error('!! loadProfile error', e);
+      }
+    }
+
+    async function loadRealties() {
+      const container = document.getElementById("realtor_listings_container");
+      container.innerHTML = '';
+      try {
+      const response = await fetch("/api/realty/my", {
+        credentials: 'include'
+      });
+
+      if (!response.ok) {
+        container.textContent = "Failed to load listings";
+        return;
+      }
+      const realties = await response.json();
+
+
+      if (realties.length === 0) {
+        container.textContent = 'No listings yet';
+        return;
+      }
+
+      realties.forEach(realty => {
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.innerHTML = `
+        <div class="card-body" data-id="${realty.id}">
+          <img src="${realty.image ?? '/assets/default.jpg'}" alt="${realty.title}">
+          <div class="card-title">${realty.title}</div>
+          <div class="card-price">${realty.price}</div>
+          <div class="card-city">${realty.city}</div>
+        </div>
+        `;
+        container.appendChild(card);
+      });
+      } catch(e) {
+        console.error('!! loadRealties error', e);
       }
     }
 
@@ -188,6 +274,8 @@
       const name = document.getElementById('register_name').value.trim();
       const email = document.getElementById('register_email').value;
       const password = document.getElementById('register_password').value.trim();
+      const role = document.querySelector('input[name="role"]:checked')?.value;
+      console.log('Register attempt', { name, email, password, role });
 
       if (!isValidEmail(email)) {
         errorBox.textContent = 'Invalid email address';
@@ -196,6 +284,11 @@
 
       if (!name || !password) {
         errorBox.textContent = 'Name and password are required';
+        return;
+      }
+
+      if (!role) {
+        errorBox.textContent = 'Please select account type';
         return;
       }
 
@@ -209,7 +302,7 @@
             name: name,
             email: email,
             password: password,
-            role: 'user'  //!!!!! DO IT
+            role: role
           })
         });
 
@@ -307,7 +400,7 @@
             card.className = 'card';
             card.innerHTML = `
             <div class="card-body" data-id="${item.id}">
-              <img src="${item.image ?? 'assets/default.jpg'}" alt="${item.title}">
+              <img src="${item.image ?? '/assets/default.jpg'}" alt="${item.title}">
               <div class="card-title">${item.title}</div>
               <div class="card-price">${item.price}</div>
               <div class="card-city">${item.city}</div>
