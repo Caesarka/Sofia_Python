@@ -20,9 +20,10 @@ def index():
 #def testPostLogin():
 #    return 'hahaha'
 
-@app.route('/ssr.html')
+@app.route('/ssr')
 def ssr():
-    return render_template('ssr.html')
+    realties = realty_controller.RealtyService(get_session()).get_all_active_realties()
+    return render_template('ssr.html', realties=realties)
 
 api = Api(app, title="My API", doc="/doc/")
 api.add_namespace(ns_realty, path='/api/realty')
