@@ -39,12 +39,18 @@ api.add_namespace(ns_user, path='/api/user')
 #    close_db_session(exception)
 
 # The fallback route
-@app.route("/<path:path>")
-def fallback(path):
+@app.route("/csr", defaults={"path": ""})
+@app.route("/csr/<path:path>")
+def csrFallback(path):
     # Log the path or handle it as needed
     print(f"Fallback route triggered for path: {path}")
     # For a SPA, you might return the index.html file
     return send_from_directory(app.static_folder, "csr.html")
+
+@app.route("/vue", defaults={"path": ""})
+@app.route("/vue/<path:path>")
+def vueFallback(path):
+    return send_from_directory(app.static_folder, "vue.html")
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)

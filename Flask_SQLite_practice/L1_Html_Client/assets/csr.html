@@ -236,7 +236,13 @@
       });
 
       try {
-        const path = (url ?? window.location.pathname).replace(/^\/+/, '').toLowerCase();
+        let path = (url ?? window.location.pathname).replace(/^\/+/, '').toLowerCase();
+        if (path.startsWith('csr/')) {
+          path = path.substring(4);
+        } else {
+          throw new Error('Invalid path for CSR: ' + path);
+        }
+
         document.querySelector('#pages > div#page_' + path)
           .style.display = 'block';
         if (path === 'profile') {
@@ -396,6 +402,10 @@
     }
     
     function navigateTo(url) {
+      // ensure url starts with /csr
+      if (!url.startsWith('/csr')) {
+        url = '/csr' + url;
+      }
       console.log('!! navigateTo', url);
       history.pushState({}, '', url);
       render(url);
@@ -405,17 +415,17 @@
       const navbar = document.getElementById('nav');
       if (getIsAuthenicated()) {
         navbar.innerHTML = `
-          <a href="/realties" class="nav-link">Realties</a>
-          <a href="/profile" id="nav_profile" class="nav-link">Profile</a>
-          <a href="/about" class="nav-link">About</a>
-          <a href="/logout" class="nav-link">Logout</a>
+          <a href="/csr/realties" class="nav-link">Realties</a>
+          <a href="/csr/profile" id="nav_profile" class="nav-link">Profile</a>
+          <a href="/csr/about" class="nav-link">About</a>
+          <a href="/csr/logout" class="nav-link">Logout</a>
         `;
       } else {
         navbar.innerHTML = `
-          <a href="/realties" class="nav-link">Realties</a>
-          <a href="/about" class="nav-link">About</a>
-          <a href="/login" class="nav-link">Login</a>
-          <a href="/register" class="nav-link">Register</a>
+          <a href="/csr/realties" class="nav-link">Realties</a>
+          <a href="/csr/about" class="nav-link">About</a>
+          <a href="/csr/login" class="nav-link">Login</a>
+          <a href="/csr/register" class="nav-link">Register</a>
         `;
       }
     };
