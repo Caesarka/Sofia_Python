@@ -209,9 +209,19 @@
 
   <script>
     const appState = {
-    isAuthenticated: false,
-    user: null
+      isAuthenticated: null,
+      user: null
     };
+
+    async function getIsAuthenicated() {
+      if (appState.isAuthenticated == null) {
+        const resp = await fetch('/api/user/profile', {
+          method: 'GET',
+        });
+        appState.isAuthenticated = resp.ok;
+      }
+      return appState.isAuthenticated ?? false;
+    }
   
     function isValidEmail(email) {
       return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -238,6 +248,8 @@
       } catch(e) {
         console.error('!! render error', e);
       }
+
+      renderNavbar();
     }
 
     async function loadProfile() {
@@ -248,7 +260,7 @@
         });
 
         if (response.status === 401) {
-          render('/login');
+          navigateTo('/login');
           return;
         }
 
@@ -389,45 +401,50 @@
       render(url);
     }
 
+    function renderNavbar() {
+      const navbar = document.getElementById('nav');
+      if (getIsAuthenicated()) {
+        navbar.innerHTML = `
+          <a href="/realties" class="nav-link">Realties</a>
+          <a href="/profile" id="nav_profile" class="nav-link">Profile</a>
+          <a href="/about" class="nav-link">About</a>
+          <a href="/logout" class="nav-link">Logout</a>
+        `;
+      } else {
+        navbar.innerHTML = `
+          <a href="/realties" class="nav-link">Realties</a>
+          <a href="/about" class="nav-link">About</a>
+          <a href="/login" class="nav-link">Login</a>
+          <a href="/register" class="nav-link">Register</a>
+        `;
+      }
+    };
+
+
     document.addEventListener('DOMContentLoaded', (event) => {
       console.log('!! DOMContentLoaded')
-      renderNavbar();
       render();
 
-      document.addEventListener('click', e => {
-        const link = e.target.closest('a');
-        if (!link) return;
-        if (link.dataset.action === 'logout') return;
-        if (link.target === '_blank') return;
-        if (link.hasAttribute('download')) return;
-        if (link.origin !== location.origin) return;
+      document.querySelectorAll('a').forEach(a => {
+       console.log('!! querySelectorAll A', a)
+       a.addEventListener('click', e => {
+         console.log('!! A click', window.location)
 
-        e.preventDefault();
+         const link = e.target.closest('a');
 
-        const url = link.pathname + link.search + link.hash;
-        navigateTo(url);
+         if (!link) return;
+         if (link.target == '_blank') return;
+         if (link.hasAttribute('data-nav')) return;
+         if (link.hasAttribute('download')) return;
+         if (link.origin != location.origin) return; // external link
 
-      });
-      //document.querySelectorAll('a').forEach(a => {
-      //  console.log('!! querySelectorAll A', a)
-      //  a.addEventListener('click', e => {
-      //    console.log('!! A click', window.location)
-//
-      //    const link = e.target.closest('a');
-//
-      //    if (!link) return;
-      //    if (link.target == '_blank') return;
-      //    if (link.hasAttribute('data-nav')) return;
-      //    if (link.hasAttribute('download')) return;
-      //    if (link.origin != location.origin) return; // external link
-//
-      //    e.preventDefault();
-//
-      //    const url = link.pathname + link.search + link.hash;
-      //    navigateTo(url);
-      //  });
-      //}
-    //);
+         e.preventDefault();
+
+         const url = link.pathname + link.search + link.hash;
+         navigateTo(url);
+       });
+      }
+    );
       
       document.getElementById('login_submit').addEventListener('click', async e => {
         console.log('!! login_submit click')
@@ -446,29 +463,10 @@
         })
 
         appState.isAuthenticated = true;
-        renderNavbar()
         console.log('Login response received');
         navigateTo('/realties');
       });
 
-    function renderNavbar() {
-      const navbar = document.getElementById('nav');
-      if (appState.isAuthenticated) {
-        navbar.innerHTML = `
-          <a href="/realties" class="nav-link">Realties</a>
-          <a href="/profile" id="nav_profile" class="nav-link">Profile</a>
-          <a href="/about" class="nav-link">About</a>
-          <a href="/logout" class="nav-link">Logout</a>
-        `;
-      } else {
-        navbar.innerHTML = `
-          <a href="/realties" class="nav-link">Realties</a>
-          <a href="/about" class="nav-link">About</a>
-          <a href="/login" class="nav-link">Login</a>
-          <a href="/register" class="nav-link">Register</a>
-        `;
-      }
-    };
 
       document.getElementById('register_submit').addEventListener('click', e => register(e));
 
@@ -479,7 +477,6 @@
         });
 
         appState.isAuthenticated = false;
-        renderNavbar();
         navigateTo('/login');
       });
 
@@ -612,7 +609,6 @@
     });
   </script>
 </body>
-
 
 </html>
 
