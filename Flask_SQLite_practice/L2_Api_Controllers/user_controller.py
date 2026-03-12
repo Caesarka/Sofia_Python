@@ -1,6 +1,6 @@
 ﻿from sqlalchemy.exc import IntegrityError
 from flask_restx import Resource
-from flask import jsonify, request, make_response
+from flask import jsonify, redirect, request, make_response
 from L4_Data_Access import db_sql
 from L4_Data_Access.orm.session import get_session
 from L3_Business_Logic.user_service import UserService
@@ -15,27 +15,58 @@ class Register(Resource):
     @ns_user.expect(user_model)
     def post(self):
         DBSession = get_session()
-        try:
-            user_data = request.json
-            if not user_data:
-                return {"message": "Missing JSON body"}, 400
+        if request.is_json:
             try:
-                user_create = UserService(DBSession).register_user(user_data)
-            
-            except IntegrityError as e:
-                print("IntegrityError:", e)
-                return {"message": "User with this email already exists"}, 405
+                user_data = request.json
+                if not user_data:
+                    return {"message": "Missing JSON body"}, 400
+                try:
+                    user_create = UserService(DBSession).register_user(user_data)
+                
+                except IntegrityError as e:
+                    print("IntegrityError:", e)
+                    return {"message": "User with this email already exists"}, 405
 
-            except ValidationError as e:
-                return {"message": "Invalid input", "errors": e.errors()}, 422
+                except ValidationError as e:
+                    return {"message": "Invalid input", "errors": e.errors()}, 422
 
-            return user_create, 201
-    
-        except Exception as e:
-            print("Unexpected error in registration:", e)
-            return {"message": "Internal server error"}, 500
-        finally:
-            DBSession.close()
+                return user_create, 201
+        
+            except Exception as e:
+                print("Unexpected error in registration:", e)
+                return {"message": "Internal server error"}, 500
+            finally:
+                DBSession.close()
+
+        else:
+            try:
+                form_data = request.form
+                user_data = {
+                    "name": form_data.get("username"),
+                    "email": form_data.get("email"),
+                    "password": form_data.get("password"),
+                    "role": "buyer"
+                }
+                if not all(user_data.values()):
+                    return {"message": "Missing form fields"}, 400
+                try:
+                    user_create = UserService(DBSession).register_user(user_data)
+                
+                except IntegrityError as e:
+                    print("IntegrityError:", e)
+                    return {"message": "User with this email already exists"}, 405
+
+                except ValidationError as e:
+                    return {"message": "Invalid input", "errors": e.errors()}, 422
+
+                return redirect('/ssr/login')
+        
+            except Exception as e:
+                print("Unexpected error in registration:", e)
+                return {"message": "Internal server error"}, 500
+            finally:
+                DBSession.close()
+
 
 
 @ns_user.route("/")
