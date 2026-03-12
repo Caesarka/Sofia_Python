@@ -1,5 +1,7 @@
-﻿from flask import Flask, render_template, g, send_from_directory
+﻿from flask_jwt_extended import jwt_required, get_jwt, get_jwt_identity
+from flask import Flask, render_template, g, send_from_directory
 from flask_restx import Api
+from L2_Api_Controllers.auth.jwt_utils import jwt_required
 from L4_Data_Access.sql.session import init_db_if_needed_v1
 from L2_Api_Controllers.realty_api_model import ns_realty
 from L2_Api_Controllers.user_api_model import ns_user
@@ -25,6 +27,27 @@ def ssr():
     realties = realty_controller.RealtyService(get_session()).get_all_active_realties()
     return render_template('ssr.html', realties=realties)
 
+
+@app.route('/ssr/login')
+@jwt_required(optional=True)
+def ssr_login():
+    return render_template('pages/login.html')
+
+@app.route('/ssr/register')
+@jwt_required(optional=True)
+def ssr_register():
+    return render_template('pages/register.html')
+
+@app.route('/ssr/about')
+@jwt_required(optional=True)
+def ssr_about():
+    return render_template('pages/about.html')
+
+@app.route('/ssr/profile')
+@jwt_required(optional=True)
+def ssr_profile():
+    return render_template('pages/profile.html')
+
 api = Api(app, title="My API", doc="/doc/")
 api.add_namespace(ns_realty, path='/api/realty')
 api.add_namespace(ns_user, path='/api/user')
@@ -49,7 +72,7 @@ def csrFallback(path):
 
 @app.route("/vue", defaults={"path": ""})
 @app.route("/vue/<path:path>")
-def vueFallback(path):
+def vue_fallback(path):
     return send_from_directory(app.static_folder, "vue.html")
 
 if __name__ == "__main__":
