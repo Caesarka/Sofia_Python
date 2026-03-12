@@ -12,7 +12,7 @@ import L4_Data_Access.db_sql as db_sql
 
 @ns_realty.route("/")
 class RealtyList(Resource):
-    #@jwt_required
+    #@jwt_required()
     #@role_required(['realtor', 'admin', 'buyer'])
     @ns_realty.marshal_list_with(realty_model)
     def get(self):
@@ -32,7 +32,7 @@ class RealtyList(Resource):
         realties = RealtyService(DBSession).get_all_active_realties()
         return realties, 200
     
-    @jwt_required
+    @jwt_required()
     @role_required(['realtor', 'admin'])
     @ns_realty.expect(realty_model, validate=True)
     @ns_realty.marshal_with(realty_model)
@@ -71,7 +71,7 @@ class RealtyItem(Resource):
         except Exception:
             ns_realty.abort(404, f"Realty with id={realty_id} not found")
 
-    @jwt_required
+    @jwt_required()
     @role_required(['realtor', 'admin'])
     @ns_realty.expect(realty_model)
     @ns_realty.doc(responses={200: "Updated"})
@@ -92,7 +92,7 @@ class RealtyItem(Resource):
             #ns_realty.abort(404, f"Realty with id={realty_id} not found. Ex: {ex}")
             #raise ex
 
-    @jwt_required
+    @jwt_required()
     @role_required(['realtor', 'admin'])
     @ns_realty.doc(responses={200: "Updated"})
     def patch(self, realty_id):
@@ -106,7 +106,7 @@ class RealtyItem(Resource):
             ns_realty.abort(403, "You are not authorized to change the publish status.")
         RealtyService(DBSession).patch_realty(realty, realty_id)
 
-    @jwt_required
+    @jwt_required()
     @role_required(['realtor', 'admin'])
     def delete(self, realty_id):
         try:
@@ -138,7 +138,7 @@ class RealtyItem(Resource):
 
 @ns_realty.route("/<int:realty_id>/publish")
 class RealtyPublish(Resource):
-    @jwt_required
+    @jwt_required()
     @role_required(['admin'])
     def patch(self, realty_id):
         DBsession = get_session()
@@ -151,7 +151,7 @@ class RealtyPublish(Resource):
 
 @ns_realty.route("/my")
 class RealtyCreatorList(Resource):
-    @jwt_required
+    @jwt_required()
     @role_required(['realtor', 'admin'])
     @ns_realty.marshal_list_with(realty_model)
     def get(self):
@@ -169,7 +169,7 @@ class RealtyCreatorList(Resource):
 
 @ns_realty.route("/my/<int:realty_id>")
 class RealtyCreatorList(Resource):
-    @jwt_required
+    @jwt_required()
     @role_required(['realtor', 'admin'])
     @ns_realty.marshal_list_with(realty_model)
     def get(self, realty_id):

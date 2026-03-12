@@ -23,16 +23,18 @@
       </ul>
 
       <ul class="navbar-nav">
+        <div style="color: white;">
+        user = {{ request.user }}
+        user_id = {{ request.user.id }}
+        </div>
 
-        jwt = {{ get_jwt() }}
-        jwt identity = {{ get_jwt_identity() }}
-
-        {% if session.get('user_id') %}
+        {% if request.user %}
           <li class="nav-item">
             <span class="navbar-text me-3">
               {{ session.get("username") }}
             </span>
           </li>
+          
 
           <li class="nav-item">
             <a class="nav-link" href="/ssr/profile">Profile</a>

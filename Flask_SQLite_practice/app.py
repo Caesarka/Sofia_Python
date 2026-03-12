@@ -1,5 +1,4 @@
-﻿from flask_jwt_extended import jwt_required, get_jwt, get_jwt_identity
-from flask import Flask, render_template, g, send_from_directory
+﻿from flask import Flask, render_template, g, send_from_directory
 from flask_restx import Api
 from L2_Api_Controllers.auth.jwt_utils import jwt_required
 from L4_Data_Access.sql.session import init_db_if_needed_v1
