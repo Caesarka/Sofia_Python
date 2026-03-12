@@ -102,7 +102,7 @@ class Login(Resource):
 
 @ns_user.route("/logout")
 class Logout(Resource):
-    @jwt_required
+    @jwt_required()
     def post(self):
         resp = make_response(jsonify({"message": "Logged out successfully"}, 200))
         resp.set_cookie("access_token", "", expires=0, httponly=True, samesite="Strict")
@@ -111,7 +111,7 @@ class Logout(Resource):
 
 @ns_user.route("/<int:user_id>")
 class UserDetail(Resource):
-    @jwt_required
+    @jwt_required()
     @ns_user.doc(responses={200: "No content"})
     def get(self, user_id):
         DBSession = get_session()
@@ -122,7 +122,7 @@ class UserDetail(Resource):
         user_auth = UserAuth.model_validate(user)
         return user_auth.model_dump(), 200
 
-    @jwt_required
+    @jwt_required()
     @ns_user.doc(responses={200: "No content"})
     @ns_user.marshal_with(update_model)
     def put(self, user_id):
@@ -154,7 +154,7 @@ class UserDetail(Resource):
 
         return {"message": "Profile updated"}, 200
 
-#    @jwt_required
+#    @jwt_required()
 #    @ns_user.doc()
 #    def delete(self, user_id):
 #        try:
@@ -170,7 +170,7 @@ class UserDetail(Resource):
 
 @ns_user.route("/profile")
 class UserProfile(Resource):
-    @jwt_required
+    @jwt_required()
     def get(self):
         DBSession = get_session()
         user_id = request.user["user_id"]
@@ -180,7 +180,7 @@ class UserProfile(Resource):
         user_auth = UserAuth.model_validate(user)
         return user_auth.model_dump(), 200
 
-    @jwt_required
+    @jwt_required()
     @ns_user.expect(update_model)
     @ns_user.doc(responses={200: "Updated"})
     def put(self):
@@ -212,7 +212,7 @@ class UserProfile(Resource):
 
         return {"message": "Profile updated"}, 200
     
-    @jwt_required
+    @jwt_required()
     @ns_user.doc()
     def delete(self):
         DBSession = get_session()
