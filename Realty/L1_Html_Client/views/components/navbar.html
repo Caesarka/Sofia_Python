@@ -15,35 +15,25 @@
 
       <ul class="navbar-nav me-auto">
         <li class="nav-item">
-          <a class="nav-link" href="/ssr">Realties</a>
+          <a class="nav-link" href="/ssr/realties">Realties</a>
         </li>
         <li class="nav-item">
           <a class="nav-link" href="/ssr/about">About</a>
         </li>
       </ul>
-
-      <ul class="navbar-nav">
-        <div style="color: white;">
-        user = {{ request.user }}
-        user_id = {{ request.user.id }}
-        </div>
-
+      <div class="navbar-nav align-center ">
         {% if request.user %}
-          <li class="nav-item">
-            <span class="navbar-text me-3">
-              {{ session.get("username") }}
-            </span>
-          </li>
-          
+          <div class="nav-item text-light d-flex align-items-center">
+            Hello, {{ request.user.user_name }}
+          </div>
 
-          <li class="nav-item">
-            <a class="nav-link" href="/ssr/profile">Profile</a>
-          </li>
+          <a class="nav-item nav-link" href="/ssr/profile">Profile</a>
 
-          <li class="nav-item">
-            <a class="nav-link" href="/ssr/logout">Logout</a>
-          </li>
-
+          <form action="/ssr/logout" method="post" class="nav-item d-flex align-items-center m-0">
+            <button type="submit" class="nav-link btn btn-link p-0 border-0 text-decoration-none">
+              Logout
+            </button>
+          </form>
         {% else %}
           <li class="nav-item">
             <a class="nav-link" href="/ssr/login">Login</a>
@@ -53,9 +43,7 @@
             <a class="nav-link" href="/ssr/register">Register</a>
           </li>
         {% endif %}
-
-      </ul>
-
+      </div>
     </div>
   </div>
 </nav>

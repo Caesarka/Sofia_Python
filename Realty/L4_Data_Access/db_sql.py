@@ -4,6 +4,7 @@ from pathlib import Path
 from sqlalchemy import update
 
 from L4_Data_Access.sql.session import get_db
+from .models.favorite_model_orm import favorite_table
 from .models.user_model_orm import UserORM
 from .models.realty_model_orm import RealtyORM
 from L5_Database.database_schema import SQL_SCHEMA
@@ -55,6 +56,20 @@ def get_my_active_realties_orm(session: Session, user_id: int, filters: list) ->
         return realties
     except Exception as e:
         raise ValueError(f"Error retrieving realty: {e}")
+    
+def get_saved_realties_orm(session: Session, user_id: int, filters: list) -> list[RealtyORM]:
+    try:
+        stmt = (
+            select(RealtyORM)
+            .join(favorite_table, RealtyORM.id == favorite_table.c.realty_id)
+            .where(favorite_table.c.user_id == user_id, *filters)
+        )
+
+        result = session.execute(stmt)
+        return result.scalars().all()
+
+    except Exception as e:
+        raise ValueError(f"Error retrieving saved realty: {e}")
 
 def get_active_realty_orm(session: Session, user_id: int, realty_id: int) -> list[RealtyORM]:
     try:

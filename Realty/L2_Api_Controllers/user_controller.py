@@ -45,7 +45,7 @@ class Register(Resource):
                     "name": form_data.get("username"),
                     "email": form_data.get("email"),
                     "password": form_data.get("password"),
-                    "role": "buyer"
+                    "role": form_data.get("role")
                 }
                 if not all(user_data.values()):
                     return {"message": "Missing form fields"}, 400
@@ -83,22 +83,44 @@ class Login(Resource):
     @ns_user.expect(auth_model)
     def post(self):
         DBSession = get_session()
-        user_request = UserLogin.model_validate(request.json)
-        print("Login attempt for:", user_request.email)
-        user = UserService(DBSession).get_user_by_email(user_request.email)
-        if user and user.password == UserAuth.hash_password(user_request.password):
-            access_token = create_access_token({"user_id": user.id, "role": user.role})
-            resp = make_response({"message": f"Welcome {user.name}"})
-            resp.set_cookie(
-                "access_token",
-                access_token,
-                httponly=True,
-                samesite="Strict",
-                max_age=60*60*24
-            )
-            return resp
-        return {"message": "Invalid credentials"}, 401
 
+        if request.is_json:
+            data = request.json
+        else:
+            data = request.form.to_dict()
+       
+        user_request = UserLogin.model_validate(data)
+
+        print("Login attempt for:", user_request.email)
+        
+        user = UserService(DBSession).get_user_by_email(user_request.email)
+        if not user or user.password != UserAuth.hash_password(user_request.password):
+            return make_response({"message": "Invalid credentials"}, 401)
+
+
+        access_token = create_access_token({
+            "user_id": user.id, 
+            "user_name": user.name, 
+            "role": user.role
+        })
+
+        if request.is_json:
+            response = make_response({"message": f"Welcome {user.name}"}, 200)
+        else:
+            response = redirect('/ssr/profile')
+
+        response.set_cookie(
+            "access_token",
+            access_token,
+            httponly=True,
+            samesite="Strict",
+            max_age=60*60*24
+        )
+        return response
+
+
+
+        
 
 @ns_user.route("/logout")
 class Logout(Resource):

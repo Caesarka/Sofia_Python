@@ -53,7 +53,14 @@ class RealtyService:
         realties = db_sql.get_my_active_realties_orm(self.DBSession, user_id, filters)
         return realties
     
+    def get_saved_realties(self, user_id: int, status: str | None = None):
+        filters = []
 
+        if status is not None:
+            filters.append(RealtyORM.status == status)
+
+        realties = db_sql.get_saved_realties_orm(self.DBSession, user_id, filters)
+        return realties
     
     def patch_realty(self, realty: RealtyPatch, realty_id: int):
         db_sql.patch_realty_orm(self.DBSession, realty, realty_id)
