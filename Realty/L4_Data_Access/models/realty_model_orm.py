@@ -2,6 +2,7 @@ from pydantic import BaseModel, Field
 from typing import TYPE_CHECKING
 from sqlalchemy import DateTime, ForeignKey, String, Enum, Boolean, Text, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+from .favorite_model_orm import favorite_table
 from datetime import datetime, timezone
 from .index import Base
 
@@ -28,7 +29,7 @@ class RealtyORM(Base):
     # TODO datetime DateTime(timezone=True)
     created_at: Mapped[str] = mapped_column(Text, default=lambda: datetime.now(timezone.utc), server_default=func.now())
 
-    published_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True, server_default=func.now())
+    published_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     status: Mapped[str] = mapped_column(Text, default='inactive')
     #role: Mapped[UserRole] = mapped_column(Enum(UserRole), nullable=False)
     
@@ -36,7 +37,13 @@ class RealtyORM(Base):
 
     user_id: Mapped[int] = mapped_column(ForeignKey("user.id"))
 
-    user: Mapped["UserORM"] = relationship("UserORM", back_populates="realty")
+    owner: Mapped["UserORM"] = relationship("UserORM", back_populates="owned_realties")
+
+    favorited_by: Mapped[list["UserORM"]] = relationship(
+        "UserORM",
+        secondary=favorite_table,
+        back_populates="favorite_realties",
+    )
 
     def __repr__(self) -> str:
         return f"<Realty(id={self.id}, title='{self.title}', address='{self.address}')>"

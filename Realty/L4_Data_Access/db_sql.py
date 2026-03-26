@@ -57,19 +57,33 @@ def get_my_active_realties_orm(session: Session, user_id: int, filters: list) ->
     except Exception as e:
         raise ValueError(f"Error retrieving realty: {e}")
     
-def get_saved_realties_orm(session: Session, user_id: int, filters: list) -> list[RealtyORM]:
-    try:
-        stmt = (
-            select(RealtyORM)
-            .join(favorite_table, RealtyORM.id == favorite_table.c.realty_id)
-            .where(favorite_table.c.user_id == user_id, *filters)
+def get_saved_realties_orm(session: Session, user_id: int) -> list[RealtyORM]:
+    user = session.get(UserORM, user_id)
+    return user.favorite_realties if user else []
+
+def is_followed_realty_orm(session: Session, user_id: int, realty_id: int) -> bool:
+    stmt = select(favorite_table).where(
+        favorite_table.c.user_id == user_id,
+        favorite_table.c.realty_id == realty_id,
+    )
+    return session.execute(stmt).first() is not None
+
+    
+def follow_realty_orm(session: Session, user_id: int, realty_id: int) -> None:
+    session.execute(
+        insert(favorite_table).values(user_id=user_id, realty_id=realty_id)
+    )
+    session.commit()
+
+def unfollow_realty_orm(session: Session, user_id: int, realty_id: int) -> None:
+    session.execute(
+        delete(favorite_table).where(
+            favorite_table.c.user_id == user_id,
+            favorite_table.c.realty_id == realty_id,
         )
+    )
+    session.commit()
 
-        result = session.execute(stmt)
-        return result.scalars().all()
-
-    except Exception as e:
-        raise ValueError(f"Error retrieving saved realty: {e}")
 
 def get_active_realty_orm(session: Session, user_id: int, realty_id: int) -> list[RealtyORM]:
     try:
@@ -166,7 +180,6 @@ def delete_realty_orm(session: Session, realty_id: int):
         return False
     return True
 
-
 def replace_realty(realty: Realty, realty_id: int):
     update_data = realty.model_dump()
     if not update_data:
@@ -199,7 +212,6 @@ def patch_realty(realty: RealtyPatch, realty_id: int):
     finally:
         db.close()
 
-
 def delete_realty(realty_id: int):
     db = get_db()
     try:
@@ -209,17 +221,6 @@ def delete_realty(realty_id: int):
         return True if cur.rowcount != 0 else False 
     finally:
         db.close()
-
-
-#def publish_realty(realty: Realty):
-#    db = get_db()
-#    
-#    try:
-#        cur = db.cursor()
-#        cur.execute("UPDATE realty SET status=1, created_at=?", (realty.created_at,))
-#        db.commit()
-#    finally:
-#        db.close()
 
 # user
 

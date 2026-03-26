@@ -53,15 +53,27 @@ class RealtyService:
         realties = db_sql.get_my_active_realties_orm(self.DBSession, user_id, filters)
         return realties
     
-    def get_saved_realties(self, user_id: int, status: str | None = None):
-        filters = []
-
-        if status is not None:
-            filters.append(RealtyORM.status == status)
-
-        realties = db_sql.get_saved_realties_orm(self.DBSession, user_id, filters)
-        return realties
+    def get_saved_realties(self, user_id: int) -> list[RealtyORM]:
+        return db_sql.get_saved_realties_orm(self.DBSession, user_id)
     
+    def follow_realty(self, user_id: int, realty_id: int):
+        realty = db_sql.get_realty_orm(self.DBSession, realty_id)
+        if not realty:
+            raise KeyError("Realty not found")
+        if db_sql.is_followed_realty_orm(self.DBSession, user_id, realty_id):
+            raise ValueError("Realty already in favorites")
+        
+        db_sql.follow_realty_orm(self.DBSession, user_id, realty_id)
+    
+    def unfollow_realty(self, user_id: int, realty_id: int):
+        realty = db_sql.get_realty_orm(self.DBSession, realty_id)
+        if not realty:
+            raise KeyError("Realty not found")
+        if not db_sql.is_followed_realty_orm(self.DBSession, user_id, realty_id):
+            raise ValueError("Realty has not been followed yet")
+        
+        db_sql.unfollow_realty_orm(self.DBSession, user_id, realty_id)
+
     def patch_realty(self, realty: RealtyPatch, realty_id: int):
         db_sql.patch_realty_orm(self.DBSession, realty, realty_id)
     

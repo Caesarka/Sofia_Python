@@ -96,6 +96,7 @@
 
     <div class="row g-4">
         {% for realty in favorites %}
+        {% set favorites_page = true %}
             {% include "components/card.html" %}
         {% else %}
             <div class="col-12">

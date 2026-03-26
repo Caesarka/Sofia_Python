@@ -2,6 +2,7 @@ from sqlalchemy import String, Enum, Boolean, Text, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from datetime import datetime, timezone
 from typing import List
+from .favorite_model_orm import favorite_table
 #from enum import Enum
 from .index import Base
 from typing import TYPE_CHECKING
@@ -29,7 +30,13 @@ class UserORM(Base):
     
     status: Mapped[str] = mapped_column(Text, default='active')
 
-    realty: Mapped[List["RealtyORM"]] = relationship("RealtyORM", back_populates="user")
+    owned_realties: Mapped[List["RealtyORM"]] = relationship("RealtyORM", back_populates="owner")
+
+    favorite_realties: Mapped[List["RealtyORM"]] = relationship(
+        "RealtyORM",
+        secondary=favorite_table,
+        back_populates="favorited_by",
+    )
 
     def __repr__(self) -> str:
         return f"<User(id={self.id}, name='{self.name}', role='{self.role}')>"
