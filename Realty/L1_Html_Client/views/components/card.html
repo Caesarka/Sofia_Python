@@ -1,6 +1,6 @@
 <div class="col-md-4 col-lg-3">
     <div class="card h-100 shadow-sm">
-        <img class="card-img-top" src="{{ realty.image or '/assets/default.jpg' }}" alt="Card image cap">
+        <img class="card-img-top" src="{{ realty.image or '/assets/default.jpg' }}">
         <div class="card-body">
             <h5 class="card-title">{{ realty.title }}</h5>
             <p class="text-muted">{{ realty.address }}</p>
@@ -16,6 +16,29 @@
                         Delete
                     </button>
                 </form>
+            </div>
+            {%  elif request.user and request.user.role == "buyer" %}
+            {% set is_followed = realty.id in favorite_ids %}
+            <div class="d-flex gap-2 mt-3">
+                {% if favorites_page %}
+                <form action="/ssr/realty/{{ realty.id }}/unfollow" method="post">
+                    <button class="btn btn-outline-dark">Unfollow</button>
+                </form>
+                {% else %}
+                    {% if not is_followed %}
+                    <form action="/ssr/realty/{{ realty.id }}/follow" method="post">
+                        <button  type="submit" class="btn btn-dark">
+                            Follow
+                        </button>
+                    </form>
+                    {% else %}
+                    <form action="/ssr/realty/{{ realty.id }}/unfollow" method="post">
+                        <button class="btn btn-outline-dark">
+                            Unfollow
+                        </button>
+                    </form>
+                    {% endif %}
+                {% endif %}
             </div>
             {% endif %}
         </div>

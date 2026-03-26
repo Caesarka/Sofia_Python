@@ -31,8 +31,24 @@ def ssr():
 @app.route('/ssr/realties')
 @jwt_required(optional=True)
 def ssr_realties():
-    realties = realty_controller.RealtyService(get_session()).get_all_active_realties()
-    return render_template('pages/realties.html', realties=realties)
+    DBSession = get_session()
+    try:
+        realties = realty_controller.RealtyService(DBSession).get_all_active_realties()
+        favorite_ids = set()
+
+        if request.user and request.user.get("role") == "buyer":
+            favorites = realty_controller.RealtyService(DBSession).get_saved_realties(
+                request.user["user_id"]
+            )
+            favorite_ids = {realty.id for realty in favorites}
+
+        return render_template(
+            'pages/realties.html',
+            realties=realties,
+            favorite_ids=favorite_ids,
+        )
+    finally:
+        DBSession.close()
 
 @app.route('/ssr/login')
 @jwt_required(optional=True)
@@ -53,27 +69,40 @@ def ssr_about():
 @jwt_required()
 def ssr_profile():
     if not request.user:
-        return redirect('ssr/login')
+        return redirect('/ssr/login')
     
     DBSession = get_session()
     try:
         user_id = request.user["user_id"]
         user = UserService(DBSession).get_user_by_id(user_id)
-        realties = []
-        favorites = []
 
         if request.user.get("role") in ["realtor", "admin"]:
             realties = realty_controller.RealtyService(DBSession).get_my_realties(
                 user_id,
                 is_deleted=False,
             )
+            return render_template(
+                'pages/profile.html',
+                user=user,
+                realties=realties,
+                favorites=[],
+                favorite_ids=set()
+            )
+        
         elif request.user.get("role") == "buyer":
             favorites = realty_controller.RealtyService(DBSession).get_saved_realties(
-                user_id,
-                status="active",
+                user_id
             )
-
-        return render_template('pages/profile.html', user=user, realties=realties, favorites=favorites)
+            favorite_ids = {realty.id for realty in favorites}
+            return render_template(
+                'pages/profile.html',
+                user=user,
+                realties=[],
+                favorites=favorites,
+                favorite_ids=favorite_ids
+            )
+        else:
+            return {"message": "Unsupported role"}, 403
     finally:
         DBSession.close()
 
@@ -156,6 +185,52 @@ def ssr_delete_realty(id):
         return redirect('/ssr/profile')
     finally:
         DBSession.close()
+
+@app.route('/ssr/realty/<int:id>/follow', methods=['POST'])
+@jwt_required()
+def ssr_follow_realty(id):
+    if request.user.get('role') != 'buyer':
+        return redirect('/ssr/profile')
+    
+    DBSession = get_session()
+    try:
+        user_id = request.user["user_id"]
+        realty_service = realty_controller.RealtyService(DBSession)
+        realty = realty_service.get_realty(id)
+        if not realty:
+            return redirect('/ssr/realties')
+
+        realty_service.follow_realty(user_id, id)
+        return redirect('/ssr/realties')
+       
+    except  ValueError as e:
+        return f"Error: {e}", 400
+    finally:
+        DBSession.close()
+        
+@app.route('/ssr/realty/<int:id>/unfollow', methods=['POST'])
+@jwt_required()
+def ssr_unfollow_realty(id):
+    if request.user.get('role') != 'buyer':
+        return redirect('/ssr/profile')
+    
+    DBSession = get_session()
+    try:
+        user_id = request.user["user_id"]
+        realty_service = realty_controller.RealtyService(DBSession)
+        realty = realty_service.get_realty(id)
+        if not realty:
+            return redirect('/ssr/realties')
+
+        realty_service.unfollow_realty(user_id, id)
+        return redirect('/ssr/profile')
+       
+    except  ValueError as e:
+        return f"Error: {e}", 400
+    finally:
+        DBSession.close()
+        
+
 
 api = Api(app, title="My API", doc="/doc/")
 api.add_namespace(ns_realty, path='/api/realty')
